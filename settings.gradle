@@ -1,0 +1,3 @@
+rootProject.name = 'simple-script-grpc'
+
+include 'grpc-interface'
