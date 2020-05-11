@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option java_package = "com.wait.simplescript.grcinterface";
+option java_package = "com.wait.simplescript.lib";
 option java_multiple_files = true;
 option java_outer_classname = "AuthProto";
 
@@ -14,7 +14,7 @@ message SignUpRequest {
   string last_name = 2;
   string email = 3;
   string password = 4;
-  bool is_admin = 5;
+  repeated string roles = 5;
 }
 
 
@@ -23,5 +23,5 @@ message SignUpResponse {
   string first_name = 2;
   string last_name = 3;
   string email = 4;
-  bool is_admin = 5;
+  repeated string roles = 5;
 }
