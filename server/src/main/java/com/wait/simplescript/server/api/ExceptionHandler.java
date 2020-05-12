@@ -1,6 +1,8 @@
 package com.wait.simplescript.server.api;
 
 import io.grpc.*;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 public class ExceptionHandler implements ServerInterceptor {
 
@@ -48,8 +50,12 @@ public class ExceptionHandler implements ServerInterceptor {
                                      Metadata metadata) {
             if (exception instanceof IllegalArgumentException) {
                 serverCall.close(Status.INVALID_ARGUMENT.withDescription(exception.getMessage()), metadata);
+            } else if (exception instanceof UsernameNotFoundException) {
+                serverCall.close(Status.NOT_FOUND.withDescription(exception.getMessage()), metadata);
+            } else if (exception instanceof BadCredentialsException) {
+                serverCall.close(Status.UNAUTHENTICATED.withDescription(exception.getMessage()), metadata);
             } else {
-                serverCall.close(Status.UNKNOWN, metadata);
+                serverCall.close(Status.UNKNOWN.withDescription(exception.getMessage()), metadata);
             }
         }
     }

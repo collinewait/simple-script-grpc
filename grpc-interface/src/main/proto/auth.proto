@@ -7,6 +7,7 @@ option java_outer_classname = "AuthProto";
 
 service AuthService {
   rpc SignUp (SignUpRequest) returns (SignUpResponse) {}
+  rpc SignIn (SignInRequest) returns (SignUpResponse) {}
 }
 
 message SignUpRequest {
@@ -24,4 +25,9 @@ message SignUpResponse {
   string last_name = 3;
   string email = 4;
   repeated string roles = 5;
+}
+
+message SignInRequest {
+  string email = 1;
+  string password = 2;
 }

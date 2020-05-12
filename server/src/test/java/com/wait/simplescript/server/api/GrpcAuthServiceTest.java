@@ -1,5 +1,6 @@
 package com.wait.simplescript.server.api;
 
+import com.wait.simplescript.lib.SignInRequest;
 import com.wait.simplescript.lib.SignUpRequest;
 import com.wait.simplescript.lib.SignUpResponse;
 import com.wait.simplescript.server.user.ERole;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.security.test.context.support.WithMockUser;
 
 import java.util.HashSet;
 import java.util.List;
