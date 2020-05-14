@@ -1,6 +1,5 @@
-package com.wait.simplescript.server.util;
+package com.wait.simplescript.server.infrastructure.security;
 
-import com.wait.simplescript.server.security.ApplicationUserDetails;
 import com.wait.simplescript.server.user.ERole;
 import com.wait.simplescript.server.user.User;
 import com.wait.simplescript.server.user.UserRole;

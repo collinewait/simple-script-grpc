@@ -1,4 +1,4 @@
-package com.wait.simplescript.server.util;
+package com.wait.simplescript.server.infrastructure.security;
 
 import org.springframework.security.test.context.support.WithSecurityContext;
 

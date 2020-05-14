@@ -1,19 +1,24 @@
-package com.wait.simplescript.server.script;
+package com.wait.simplescript.server.script.web;
 
 import com.wait.simplescript.lib.ScriptOperationsReq;
 import com.wait.simplescript.lib.ScriptRes;
-import com.wait.simplescript.server.api.GrpcScriptService;
+import com.wait.simplescript.server.infrastructure.SpringProfiles;
+import com.wait.simplescript.server.script.InvalidOperationException;
+import com.wait.simplescript.server.script.Script;
+import com.wait.simplescript.server.script.ScriptService;
+import com.wait.simplescript.server.script.ScriptUtils;
 import com.wait.simplescript.server.user.ERole;
 import com.wait.simplescript.server.user.User;
 import com.wait.simplescript.server.user.UserRole;
 import com.wait.simplescript.server.user.UserService;
-import com.wait.simplescript.server.util.WithMockAuthenticatedUser;
+import com.wait.simplescript.server.infrastructure.security.WithMockAuthenticatedUser;
 import io.grpc.internal.testing.StreamRecorder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -26,6 +31,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
+@ActiveProfiles(SpringProfiles.TEST)
 public class GrpcScriptServiceTest {
     @MockBean
     private ScriptService scriptService;

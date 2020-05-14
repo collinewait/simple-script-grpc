@@ -1,11 +1,11 @@
-package com.wait.simplescript.server.api;
+package com.wait.simplescript.server.script.web;
 
 import com.wait.simplescript.lib.ScriptOperationsReq;
 import com.wait.simplescript.lib.ScriptRes;
 import com.wait.simplescript.lib.ScriptServiceGrpc;
 import com.wait.simplescript.server.script.Script;
 import com.wait.simplescript.server.script.ScriptService;
-import com.wait.simplescript.server.security.ApplicationUserDetails;
+import com.wait.simplescript.server.infrastructure.security.ApplicationUserDetails;
 import com.wait.simplescript.server.user.User;
 import com.wait.simplescript.server.user.UserNotFoundException;
 import com.wait.simplescript.server.user.UserService;

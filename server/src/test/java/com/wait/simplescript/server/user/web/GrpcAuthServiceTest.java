@@ -1,19 +1,20 @@
-package com.wait.simplescript.server.api;
+package com.wait.simplescript.server.user.web;
 
-import com.wait.simplescript.lib.SignInRequest;
 import com.wait.simplescript.lib.SignUpRequest;
 import com.wait.simplescript.lib.SignUpResponse;
+import com.wait.simplescript.server.infrastructure.SpringProfiles;
 import com.wait.simplescript.server.user.ERole;
 import com.wait.simplescript.server.user.User;
 import com.wait.simplescript.server.user.UserRole;
 import com.wait.simplescript.server.user.UserService;
+import com.wait.simplescript.server.user.web.GrpcAuthService;
 import io.grpc.internal.testing.StreamRecorder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.HashSet;
 import java.util.List;
@@ -28,6 +29,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 @SpringBootTest
+@ActiveProfiles(SpringProfiles.TEST)
 public class GrpcAuthServiceTest {
     @MockBean
     private UserService service;

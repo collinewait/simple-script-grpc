@@ -1,10 +1,10 @@
-package com.wait.simplescript.server.api;
+package com.wait.simplescript.server.user.web;
 
 import com.wait.simplescript.lib.AuthServiceGrpc;
 import com.wait.simplescript.lib.SignInRequest;
 import com.wait.simplescript.lib.SignUpRequest;
 import com.wait.simplescript.lib.SignUpResponse;
-import com.wait.simplescript.server.security.ApplicationUserDetails;
+import com.wait.simplescript.server.infrastructure.security.ApplicationUserDetails;
 import com.wait.simplescript.server.user.ERole;
 import com.wait.simplescript.server.user.User;
 import com.wait.simplescript.server.user.UserRole;

@@ -1,4 +1,4 @@
-package com.wait.simplescript.server.security;
+package com.wait.simplescript.server.infrastructure.security;
 
 import net.devh.boot.grpc.server.security.authentication.BasicGrpcAuthenticationReader;
 import net.devh.boot.grpc.server.security.authentication.GrpcAuthenticationReader;

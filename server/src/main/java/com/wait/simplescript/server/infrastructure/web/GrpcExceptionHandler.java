@@ -1,4 +1,4 @@
-package com.wait.simplescript.server.api;
+package com.wait.simplescript.server.infrastructure.web;
 
 import com.wait.simplescript.server.script.InvalidOperationException;
 import com.wait.simplescript.server.user.UserNotFoundException;
@@ -6,7 +6,7 @@ import io.grpc.*;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
-public class ExceptionHandler implements ServerInterceptor {
+public class GrpcExceptionHandler implements ServerInterceptor {
 
     @Override
     public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
