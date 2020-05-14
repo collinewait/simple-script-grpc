@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option java_package = "com.wait.simplescript.lib";
+option java_multiple_files = true;
+option java_outer_classname = "ScriptProto";
+
+service ScriptService {
+  rpc CreateScript (ScriptOperationsReq) returns (ScriptRes) {}
+}
+
+message ScriptOperationsReq {
+  repeated string operations = 1;
+}
+
+message ScriptRes {
+  string id = 1;
+  string script_value = 2;
+  repeated string executed_output = 3;
+  string user_id = 4;
+}

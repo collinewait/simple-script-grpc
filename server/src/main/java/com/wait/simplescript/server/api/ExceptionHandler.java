@@ -1,5 +1,7 @@
 package com.wait.simplescript.server.api;
 
+import com.wait.simplescript.server.script.InvalidOperationException;
+import com.wait.simplescript.server.user.UserNotFoundException;
 import io.grpc.*;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -10,8 +12,10 @@ public class ExceptionHandler implements ServerInterceptor {
     public <ReqT, RespT> ServerCall.Listener<ReqT> interceptCall(
             ServerCall<ReqT, RespT> serverCall, Metadata metadata,
             ServerCallHandler<ReqT, RespT> serverCallHandler) {
-        ServerCall.Listener<ReqT> listener = serverCallHandler.startCall(serverCall, metadata);
-        return new ExceptionHandlingServerCallListener<>(listener, serverCall, metadata);
+        ServerCall.Listener<ReqT> listener =
+                serverCallHandler.startCall(serverCall, metadata);
+        return new ExceptionHandlingServerCallListener<>(listener, serverCall
+                , metadata);
     }
 
     private class ExceptionHandlingServerCallListener<ReqT, RespT>
@@ -54,6 +58,10 @@ public class ExceptionHandler implements ServerInterceptor {
                 serverCall.close(Status.NOT_FOUND.withDescription(exception.getMessage()), metadata);
             } else if (exception instanceof BadCredentialsException) {
                 serverCall.close(Status.UNAUTHENTICATED.withDescription(exception.getMessage()), metadata);
+            } else if (exception instanceof UserNotFoundException) {
+                serverCall.close(Status.NOT_FOUND.withDescription(exception.getMessage()), metadata);
+            } else if (exception instanceof InvalidOperationException) {
+                serverCall.close(Status.INVALID_ARGUMENT.withDescription(exception.getMessage()), metadata);
             } else {
                 serverCall.close(Status.UNKNOWN.withDescription(exception.getMessage()), metadata);
             }

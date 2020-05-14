@@ -4,6 +4,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -41,6 +42,11 @@ public class UserServiceImpl implements UserService {
                 passwordEncoder.encode(password),
                 roles);
         return userRepository.save(user);
+    }
+
+    @Override
+    public Optional<User> getUser(String id) {
+        return userRepository.findById(id);
     }
 
     @Override
