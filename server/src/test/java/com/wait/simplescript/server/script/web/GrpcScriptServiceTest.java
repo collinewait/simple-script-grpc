@@ -3,17 +3,15 @@ package com.wait.simplescript.server.script.web;
 import com.wait.simplescript.lib.ScriptOperationsReq;
 import com.wait.simplescript.lib.ScriptRes;
 import com.wait.simplescript.server.infrastructure.SpringProfiles;
+import com.wait.simplescript.server.infrastructure.security.WithMockAuthenticatedUser;
 import com.wait.simplescript.server.script.InvalidOperationException;
 import com.wait.simplescript.server.script.Script;
 import com.wait.simplescript.server.script.ScriptService;
 import com.wait.simplescript.server.script.ScriptUtils;
-import com.wait.simplescript.server.user.ERole;
 import com.wait.simplescript.server.user.User;
-import com.wait.simplescript.server.user.UserRole;
 import com.wait.simplescript.server.user.UserService;
-import com.wait.simplescript.server.infrastructure.security.WithMockAuthenticatedUser;
+import com.wait.simplescript.server.user.Users;
 import io.grpc.internal.testing.StreamRecorder;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -33,6 +31,7 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 @ActiveProfiles(SpringProfiles.TEST)
 public class GrpcScriptServiceTest {
+    private final String scriptId = "23456scriptId356";
     @MockBean
     private ScriptService scriptService;
     @MockBean
@@ -40,40 +39,16 @@ public class GrpcScriptServiceTest {
     @Autowired
     private GrpcScriptService grpcScriptService;
 
-    private String userId;
-    private String firstName;
-    private String lastName;
-    private String email;
-    private String password;
-    private Set<UserRole> userRoles;
-    private String scriptId;
-    private User testUser;
-
-    @BeforeEach
-    public void setup() {
-        userId = "321someuserId123";
-        firstName = "first";
-        lastName = "last";
-        email = "first@last.com";
-        password = "mypass";
-        userRoles = new HashSet<>();
-        userRoles.add(new UserRole(ERole.USER));
-        scriptId = "23456scriptId356";
-        testUser = User.createUSer(firstName, lastName, email, password,
-                userRoles);
-        testUser.setId(userId);
-    }
-
     @Test
     @WithMockAuthenticatedUser
     public void testCreateScriptWithSingleOperation() throws Exception {
-        Script testScript = Script.createScript(testUser, ScriptUtils.DO_THIS,
+        Script testScript = Script.createScript(Users.user(),
+                ScriptUtils.DO_THIS,
                 new ArrayList<>());
         testScript.setId(scriptId);
-        testUser.setId(userId);
 
         when(userService.getUser(anyString()))
-                .thenReturn(Optional.of(testUser));
+                .thenReturn(Optional.of(Users.user()));
         when(scriptService.createScript(any(User.class), anyString()))
                 .thenReturn(testScript);
 
@@ -102,13 +77,13 @@ public class GrpcScriptServiceTest {
         String expectedStringValue = String.format("%s\n%s",
                 ScriptUtils.DO_THIS,
                 ScriptUtils.DO_THIS);
-        Script testScript = Script.createScript(testUser, expectedStringValue,
+        Script testScript = Script.createScript(Users.user(),
+                expectedStringValue,
                 new ArrayList<>());
         testScript.setId(scriptId);
-        testUser.setId(userId);
 
         when(userService.getUser(anyString()))
-                .thenReturn(Optional.of(testUser));
+                .thenReturn(Optional.of(Users.user()));
         when(scriptService.createScript(any(User.class), anyString()))
                 .thenReturn(testScript);
 
@@ -135,9 +110,8 @@ public class GrpcScriptServiceTest {
     @Test
     @WithMockAuthenticatedUser
     public void testCreateScriptWithEmptyOperations() {
-
         when(userService.getUser(anyString()))
-                .thenReturn(Optional.of(testUser));
+                .thenReturn(Optional.of(Users.user()));
 
         List<String> operations = new ArrayList<>();
         ScriptOperationsReq req = ScriptOperationsReq.newBuilder()
@@ -155,9 +129,8 @@ public class GrpcScriptServiceTest {
     @Test
     @WithMockAuthenticatedUser
     public void testCreateScriptWithSingleInvalidOperation() {
-
         when(userService.getUser(anyString()))
-                .thenReturn(Optional.of(testUser));
+                .thenReturn(Optional.of(Users.user()));
 
         ScriptOperationsReq req = ScriptOperationsReq.newBuilder()
                 .addAllOperations(Collections.singletonList(
@@ -175,9 +148,8 @@ public class GrpcScriptServiceTest {
     @Test
     @WithMockAuthenticatedUser
     public void testCreateScriptWithMultipleInvalidOperations() {
-
         when(userService.getUser(anyString()))
-                .thenReturn(Optional.of(testUser));
+                .thenReturn(Optional.of(Users.user()));
 
         ScriptOperationsReq req = ScriptOperationsReq.newBuilder()
                 .addAllOperations(Arrays.asList("SomeInvalidOperationHere", ""))
@@ -194,9 +166,8 @@ public class GrpcScriptServiceTest {
     @Test
     @WithMockAuthenticatedUser
     public void testCreateScriptWithLatInvalidOperation() {
-
         when(userService.getUser(anyString()))
-                .thenReturn(Optional.of(testUser));
+                .thenReturn(Optional.of(Users.user()));
 
         ScriptOperationsReq req = ScriptOperationsReq.newBuilder()
                 .addAllOperations(Arrays.asList(ScriptUtils.DO_THIS, ""))

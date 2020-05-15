@@ -5,10 +5,7 @@ import com.wait.simplescript.lib.SignInRequest;
 import com.wait.simplescript.lib.SignUpRequest;
 import com.wait.simplescript.lib.SignUpResponse;
 import com.wait.simplescript.server.infrastructure.security.ApplicationUserDetails;
-import com.wait.simplescript.server.user.ERole;
-import com.wait.simplescript.server.user.User;
-import com.wait.simplescript.server.user.UserRole;
-import com.wait.simplescript.server.user.UserService;
+import com.wait.simplescript.server.user.*;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -42,12 +39,11 @@ public class GrpcAuthService extends AuthServiceGrpc.AuthServiceImplBase {
 
         if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty()
                 || password.isEmpty() || roles.isEmpty()) {
-            throw new IllegalArgumentException("Some fields are missing, all " +
-                    "fields are required");
+            throw new IllegalArgumentException(UserUtils.MISSING_FIELDS_MSG);
         }
 
         if (service.existsByEmail(email)) {
-            throw new IllegalArgumentException("Email already exists");
+            throw new IllegalArgumentException(UserUtils.EMAIL_ALREADY_EXISTS_ERROR_MSG);
         }
 
         User user = service.createUser(firstName, lastName,

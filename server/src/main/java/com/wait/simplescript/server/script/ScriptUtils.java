@@ -17,8 +17,8 @@ public class ScriptUtils {
                     DO_THE, DO_THIS)));
 
     private ScriptUtils() {
-        throw new AssertionError("No com.wait.simplescript.server.script" +
-                ".Script instances");
+        throw new AssertionError("com.wait.simplescript.server.script" +
+                ".Script instances can not be created");
     }
 
     public static String generateScript(List<String> operations) {
