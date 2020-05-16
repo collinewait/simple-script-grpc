@@ -16,4 +16,8 @@ public class UserRole {
     public UserRole(ERole name) {
         this.name = name;
     }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 }

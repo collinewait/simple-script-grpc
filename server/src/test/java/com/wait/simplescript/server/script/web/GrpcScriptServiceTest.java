@@ -4,10 +4,7 @@ import com.wait.simplescript.lib.ScriptOperationsReq;
 import com.wait.simplescript.lib.ScriptRes;
 import com.wait.simplescript.server.infrastructure.SpringProfiles;
 import com.wait.simplescript.server.infrastructure.security.WithMockAuthenticatedUser;
-import com.wait.simplescript.server.script.InvalidOperationException;
-import com.wait.simplescript.server.script.Script;
-import com.wait.simplescript.server.script.ScriptService;
-import com.wait.simplescript.server.script.ScriptUtils;
+import com.wait.simplescript.server.script.*;
 import com.wait.simplescript.server.user.User;
 import com.wait.simplescript.server.user.UserService;
 import com.wait.simplescript.server.user.Users;
@@ -31,7 +28,6 @@ import static org.mockito.Mockito.when;
 @SpringBootTest
 @ActiveProfiles(SpringProfiles.TEST)
 public class GrpcScriptServiceTest {
-    private final String scriptId = "23456scriptId356";
     @MockBean
     private ScriptService scriptService;
     @MockBean
@@ -42,15 +38,10 @@ public class GrpcScriptServiceTest {
     @Test
     @WithMockAuthenticatedUser
     public void testCreateScriptWithSingleOperation() throws Exception {
-        Script testScript = Script.createScript(Users.user(),
-                ScriptUtils.DO_THIS,
-                new ArrayList<>());
-        testScript.setId(scriptId);
-
         when(userService.getUser(anyString()))
                 .thenReturn(Optional.of(Users.user()));
         when(scriptService.createScript(any(User.class), anyString()))
-                .thenReturn(testScript);
+                .thenReturn(Scripts.SINGLE_OPERATION_SCRIPT);
 
         ScriptOperationsReq req = ScriptOperationsReq.newBuilder()
                 .addAllOperations(Collections.singletonList(ScriptUtils.DO_THIS))
@@ -66,7 +57,7 @@ public class GrpcScriptServiceTest {
         List<ScriptRes> results = responseObserver.getValues();
         assertEquals(1, results.size());
         assertThat(results).extracting(ScriptRes::getId).contains
-                (scriptId);
+                (Scripts.SCRIPT_ID);
         assertThat(results).extracting(ScriptRes::getScriptValue).contains
                 (ScriptUtils.DO_THIS);
     }
@@ -74,18 +65,10 @@ public class GrpcScriptServiceTest {
     @Test
     @WithMockAuthenticatedUser
     public void testCreateScriptWithMultipleOperations() throws Exception {
-        String expectedStringValue = String.format("%s\n%s",
-                ScriptUtils.DO_THIS,
-                ScriptUtils.DO_THIS);
-        Script testScript = Script.createScript(Users.user(),
-                expectedStringValue,
-                new ArrayList<>());
-        testScript.setId(scriptId);
-
         when(userService.getUser(anyString()))
                 .thenReturn(Optional.of(Users.user()));
         when(scriptService.createScript(any(User.class), anyString()))
-                .thenReturn(testScript);
+                .thenReturn(Scripts.MULTIPLE_OPERATIONS_SCRIPT);
 
         ScriptOperationsReq req = ScriptOperationsReq.newBuilder()
                 .addAllOperations(Arrays.asList(ScriptUtils.DO_THIS,
@@ -102,9 +85,9 @@ public class GrpcScriptServiceTest {
         List<ScriptRes> results = responseObserver.getValues();
         assertEquals(1, results.size());
         assertThat(results).extracting(ScriptRes::getId).contains
-                (scriptId);
+                (Scripts.SCRIPT_ID);
         assertThat(results).extracting(ScriptRes::getScriptValue).contains
-                (expectedStringValue);
+                (Scripts.MULTIPLE_OPERATIONS_SCRIPT_VALUE);
     }
 
     @Test
