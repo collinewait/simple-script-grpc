@@ -6,6 +6,7 @@ option java_outer_classname = "ScriptProto";
 
 service ScriptService {
   rpc CreateScript (ScriptOperationsReq) returns (ScriptRes) {}
+  rpc GetScript (SingleScriptReq) returns (ScriptRes) {}
 }
 
 message ScriptOperationsReq {
@@ -17,4 +18,8 @@ message ScriptRes {
   string script_value = 2;
   repeated string executed_output = 3;
   string user_id = 4;
+}
+
+message SingleScriptReq {
+  string id = 1;
 }

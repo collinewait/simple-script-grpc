@@ -2,6 +2,7 @@ package com.wait.simplescript.server.script.web;
 
 import com.wait.simplescript.lib.ScriptOperationsReq;
 import com.wait.simplescript.lib.ScriptRes;
+import com.wait.simplescript.lib.SingleScriptReq;
 import com.wait.simplescript.server.infrastructure.SpringProfiles;
 import com.wait.simplescript.server.infrastructure.security.WithMockAuthenticatedUser;
 import com.wait.simplescript.server.script.*;
@@ -162,5 +163,47 @@ public class GrpcScriptServiceTest {
         Exception exception = assertThrows(InvalidOperationException.class,
                 () -> grpcScriptService.createScript(req, responseObserver));
         assertThat(exception.getMessage()).contains(ScriptUtils.INVALID_OPERATIONS_MSG);
+    }
+
+    @Test
+    @WithMockAuthenticatedUser
+    public void testFindById() throws Exception {
+        when(scriptService.findById(anyString())).thenReturn(Optional.of(Scripts.SINGLE_OPERATION_SCRIPT));
+
+        SingleScriptReq req = SingleScriptReq.newBuilder()
+                .setId(Scripts.SCRIPT_ID)
+                .build();
+
+        StreamRecorder<ScriptRes> responseObserver = StreamRecorder
+                .create();
+        grpcScriptService.getScript(req, responseObserver);
+        if (!responseObserver.awaitCompletion(5, TimeUnit.SECONDS)) {
+            fail("The call did not terminate in time");
+        }
+        assertNull(responseObserver.getError());
+        List<ScriptRes> results = responseObserver.getValues();
+        assertEquals(1, results.size());
+        assertThat(results).extracting(ScriptRes::getId).contains
+                (Scripts.SCRIPT_ID);
+        assertThat(results).extracting(ScriptRes::getScriptValue).contains
+                (ScriptUtils.DO_THIS);
+    }
+
+    @Test
+    @WithMockAuthenticatedUser
+    public void testFindByIdWithAnInvalidId() {
+        when(scriptService.findById(anyString())).thenReturn(Optional.empty());
+
+        SingleScriptReq req = SingleScriptReq.newBuilder()
+                .setId(Scripts.SCRIPT_ID)
+                .build();
+
+        StreamRecorder<ScriptRes> responseObserver = StreamRecorder
+                .create();
+
+        Exception exception = assertThrows(ScriptNotFoundException.class,
+                () -> grpcScriptService.getScript(req, responseObserver));
+        assertThat(exception.getMessage()).contains(String.format("Could not " +
+                "find script with id %s", Scripts.SCRIPT_ID));
     }
 }

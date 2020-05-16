@@ -3,9 +3,11 @@ package com.wait.simplescript.server.script.web;
 import com.wait.simplescript.lib.ScriptOperationsReq;
 import com.wait.simplescript.lib.ScriptRes;
 import com.wait.simplescript.lib.ScriptServiceGrpc;
-import com.wait.simplescript.server.script.Script;
-import com.wait.simplescript.server.script.ScriptService;
+import com.wait.simplescript.lib.SingleScriptReq;
 import com.wait.simplescript.server.infrastructure.security.ApplicationUserDetails;
+import com.wait.simplescript.server.script.Script;
+import com.wait.simplescript.server.script.ScriptNotFoundException;
+import com.wait.simplescript.server.script.ScriptService;
 import com.wait.simplescript.server.user.User;
 import com.wait.simplescript.server.user.UserNotFoundException;
 import com.wait.simplescript.server.user.UserService;
@@ -44,6 +46,23 @@ public class GrpcScriptService extends ScriptServiceGrpc.ScriptServiceImplBase {
 
         String scriptValue = generateScript(operations);
         Script script = scriptService.createScript(user, scriptValue);
+        ScriptRes res = ScriptRes.newBuilder()
+                .setId(script.getId())
+                .setScriptValue(script.getScriptValue())
+                .addAllExecutedOutput(script.getExecutedOutput())
+                .setUserId(script.getUser().getId())
+                .build();
+        responseObserver.onNext(res);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    @Secured("ROLE_USER")
+    public void getScript(SingleScriptReq req,
+                          StreamObserver<ScriptRes> responseObserver) {
+        Script script =
+                scriptService.findById(req.getId()).orElseThrow(
+                        () -> new ScriptNotFoundException(req.getId()));
         ScriptRes res = ScriptRes.newBuilder()
                 .setId(script.getId())
                 .setScriptValue(script.getScriptValue())

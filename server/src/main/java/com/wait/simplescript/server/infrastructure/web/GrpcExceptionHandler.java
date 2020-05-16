@@ -1,6 +1,7 @@
 package com.wait.simplescript.server.infrastructure.web;
 
 import com.wait.simplescript.server.script.InvalidOperationException;
+import com.wait.simplescript.server.script.ScriptNotFoundException;
 import com.wait.simplescript.server.user.UserNotFoundException;
 import io.grpc.*;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -62,6 +63,8 @@ public class GrpcExceptionHandler implements ServerInterceptor {
                 serverCall.close(Status.NOT_FOUND.withDescription(exception.getMessage()), metadata);
             } else if (exception instanceof InvalidOperationException) {
                 serverCall.close(Status.INVALID_ARGUMENT.withDescription(exception.getMessage()), metadata);
+            } else if (exception instanceof ScriptNotFoundException) {
+                serverCall.close(Status.NOT_FOUND.withDescription(exception.getMessage()), metadata);
             } else {
                 serverCall.close(Status.UNKNOWN.withDescription(exception.getMessage()), metadata);
             }
