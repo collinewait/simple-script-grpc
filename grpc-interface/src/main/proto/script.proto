@@ -7,6 +7,7 @@ option java_outer_classname = "ScriptProto";
 service ScriptService {
   rpc CreateScript (ScriptOperationsReq) returns (ScriptRes) {}
   rpc GetScript (SingleScriptReq) returns (ScriptRes) {}
+  rpc GetAllScripts (EmptyReq) returns (ScriptListRes) {}
 }
 
 message ScriptOperationsReq {
@@ -22,4 +23,10 @@ message ScriptRes {
 
 message SingleScriptReq {
   string id = 1;
+}
+
+message EmptyReq {}
+
+message ScriptListRes {
+  repeated ScriptRes scripts = 1;
 }

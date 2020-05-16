@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 public class Scripts {
     public static final String SCRIPT_ID = "23456scriptId356";
+    public static final String MULTIPLE_SCRIPT_ID = "46783whoJJJ78";
     public static final Script SINGLE_OPERATION_SCRIPT =
             createSingleOpsScript();
     public static final String MULTIPLE_OPERATIONS_SCRIPT_VALUE =
@@ -30,7 +31,7 @@ public class Scripts {
         Script script = Script.createScript(Users.user(),
                 MULTIPLE_OPERATIONS_SCRIPT_VALUE,
                 new ArrayList<>());
-        script.setId(SCRIPT_ID);
+        script.setId(MULTIPLE_SCRIPT_ID);
         return script;
     }
 }

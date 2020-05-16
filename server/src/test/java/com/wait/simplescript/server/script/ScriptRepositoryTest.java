@@ -9,6 +9,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,5 +44,21 @@ public class ScriptRepositoryTest {
         Optional<Script> optionalScript =
                 repository.findById(Scripts.SCRIPT_ID);
         assertThat(optionalScript).isEmpty();
+    }
+
+    @Test
+    public void givenScriptsExist_thenScriptsShouldBeReturned() {
+        repository.save(Scripts.SINGLE_OPERATION_SCRIPT);
+        repository.save(Scripts.MULTIPLE_OPERATIONS_SCRIPT);
+        List<Script> scripts = repository.findAll();
+        assertThat(scripts).isNotNull();
+        assertEquals(2, scripts.size());
+    }
+
+    @Test
+    public void givenNoScripts_thenEmptyListShouldBeReturned() {
+        List<Script> scripts = repository.findAll();
+        assertThat(scripts).isNotNull();
+        assertEquals(0, scripts.size());
     }
 }

@@ -4,7 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -39,6 +39,28 @@ public class ScriptServiceTest {
                     .thenReturn(Optional.empty());
             Optional<Script> script = scriptService.findById(Scripts.SCRIPT_ID);
             assertThat(script).isEmpty();
+        }
+    }
+
+    @Nested
+    class FindAll {
+        @Test
+        public void givenScriptsExists_thenScriptsShouldBeReturned() {
+            when(scriptRepository.findAll())
+                    .thenReturn(Arrays.asList(Scripts.SINGLE_OPERATION_SCRIPT
+                            , Scripts.MULTIPLE_OPERATIONS_SCRIPT));
+            List<Script> scripts = scriptService.findAll();
+            assertThat(scripts).isNotEmpty();
+            assertEquals(2, scripts.size());
+        }
+
+        @Test
+        public void givenNoScripts_thenEmptyListShouldBeReturned() {
+            when(scriptRepository.findAll())
+                    .thenReturn(Collections.emptyList());
+            List<Script> scripts = scriptService.findAll();
+            assertThat(scripts).isNotNull();
+            assertEquals(0, scripts.size());
         }
     }
 }

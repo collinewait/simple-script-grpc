@@ -1,9 +1,6 @@
 package com.wait.simplescript.server.script.web;
 
-import com.wait.simplescript.lib.ScriptOperationsReq;
-import com.wait.simplescript.lib.ScriptRes;
-import com.wait.simplescript.lib.ScriptServiceGrpc;
-import com.wait.simplescript.lib.SingleScriptReq;
+import com.wait.simplescript.lib.*;
 import com.wait.simplescript.server.infrastructure.security.ApplicationUserDetails;
 import com.wait.simplescript.server.script.Script;
 import com.wait.simplescript.server.script.ScriptNotFoundException;
@@ -18,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.wait.simplescript.server.script.ScriptUtils.generateScript;
 
@@ -69,6 +67,25 @@ public class GrpcScriptService extends ScriptServiceGrpc.ScriptServiceImplBase {
                 .addAllExecutedOutput(script.getExecutedOutput())
                 .setUserId(script.getUser().getId())
                 .build();
+        responseObserver.onNext(res);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    @Secured("ROLE_USER")
+    public void getAllScripts(EmptyReq req,
+                              StreamObserver<ScriptListRes> responseObserver) {
+        List<Script> scripts = scriptService.findAll();
+
+        List<ScriptRes> scriptsResList = scripts.stream().map(script -> ScriptRes.newBuilder()
+                .setId(script.getId())
+                .setScriptValue(script.getScriptValue())
+                .addAllExecutedOutput(script.getExecutedOutput())
+                .setUserId(script.getUser().getId())
+                .build()).collect(Collectors.toList());
+
+        ScriptListRes res =
+                ScriptListRes.newBuilder().addAllScripts(scriptsResList).build();
         responseObserver.onNext(res);
         responseObserver.onCompleted();
     }

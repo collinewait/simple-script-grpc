@@ -4,6 +4,7 @@ import com.wait.simplescript.server.user.User;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -25,5 +26,10 @@ public class ScriptServiceImpl implements ScriptService {
     @Override
     public Optional<Script> findById(String id) {
         return scriptRepository.findById(id);
+    }
+
+    @Override
+    public List<Script> findAll() {
+        return scriptRepository.findAll();
     }
 }

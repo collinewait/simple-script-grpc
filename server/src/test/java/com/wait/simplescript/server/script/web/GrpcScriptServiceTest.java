@@ -1,8 +1,6 @@
 package com.wait.simplescript.server.script.web;
 
-import com.wait.simplescript.lib.ScriptOperationsReq;
-import com.wait.simplescript.lib.ScriptRes;
-import com.wait.simplescript.lib.SingleScriptReq;
+import com.wait.simplescript.lib.*;
 import com.wait.simplescript.server.infrastructure.SpringProfiles;
 import com.wait.simplescript.server.infrastructure.security.WithMockAuthenticatedUser;
 import com.wait.simplescript.server.script.*;
@@ -89,7 +87,7 @@ public class GrpcScriptServiceTest {
             List<ScriptRes> results = responseObserver.getValues();
             assertEquals(1, results.size());
             assertThat(results).extracting(ScriptRes::getId).contains
-                    (Scripts.SCRIPT_ID);
+                    (Scripts.MULTIPLE_SCRIPT_ID);
             assertThat(results).extracting(ScriptRes::getScriptValue).contains
                     (Scripts.MULTIPLE_OPERATIONS_SCRIPT_VALUE);
         }
@@ -218,6 +216,52 @@ public class GrpcScriptServiceTest {
             assertThat(exception.getMessage()).contains(String.format("Could " +
                     "not " +
                     "find script with id %s", Scripts.SCRIPT_ID));
+        }
+    }
+
+    @Nested
+    class FindAll {
+        @Test
+        @WithMockAuthenticatedUser
+        public void givenScriptsExist_thenResponseShouldContainScripts() throws Exception {
+            when(scriptService.findAll()).thenReturn(Arrays.asList(
+                    Scripts.MULTIPLE_OPERATIONS_SCRIPT,
+                    Scripts.SINGLE_OPERATION_SCRIPT));
+
+            EmptyReq req = EmptyReq.newBuilder()
+                    .build();
+
+            StreamRecorder<ScriptListRes> responseObserver = StreamRecorder
+                    .create();
+            grpcScriptService.getAllScripts(req, responseObserver);
+            if (!responseObserver.awaitCompletion(5, TimeUnit.SECONDS)) {
+                fail("The call did not terminate in time");
+            }
+            assertNull(responseObserver.getError());
+            List<ScriptListRes> results = responseObserver.getValues();
+            assertEquals(1, results.size());
+            assertEquals(2, results.get(0).getScriptsList().size());
+        }
+
+        @Test
+        @WithMockAuthenticatedUser
+        public void givenNoScripts_thenResponseShouldContainEmptyList() throws Exception {
+            when(scriptService.findAll()).thenReturn(Collections.emptyList());
+
+            EmptyReq req = EmptyReq.newBuilder()
+                    .build();
+
+            StreamRecorder<ScriptListRes> responseObserver = StreamRecorder
+                    .create();
+            grpcScriptService.getAllScripts(req, responseObserver);
+            if (!responseObserver.awaitCompletion(5, TimeUnit.SECONDS)) {
+                fail("The call did not terminate in time");
+            }
+
+            assertNull(responseObserver.getError());
+            List<ScriptListRes> results = responseObserver.getValues();
+            assertEquals(1, results.size());
+            assertEquals(0, results.get(0).getScriptsList().size());
         }
     }
 }
