@@ -7,6 +7,7 @@ import com.wait.simplescript.server.user.UserService;
 import com.wait.simplescript.server.user.UserUtils;
 import com.wait.simplescript.server.user.Users;
 import io.grpc.internal.testing.StreamRecorder;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,79 +33,83 @@ public class GrpcAuthServiceTest {
     @Autowired
     private GrpcAuthService grpcAuthService;
 
-    @Test
-    public void testSignUp() throws Exception {
-        when(service.createUser(anyString(), anyString(), anyString(),
-                anyString(), any(HashSet.class)))
-                .thenReturn(Users.user());
+    @Nested
+    class SignUp {
+        @Test
+        public void givenValidDetails_thenResponseShouldContainUser() throws Exception {
+            when(service.createUser(anyString(), anyString(), anyString(),
+                    anyString(), any(HashSet.class)))
+                    .thenReturn(Users.user());
+            when(service.existsByEmail(anyString())).thenReturn(false);
 
-        SignUpRequest req = SignUpRequest.newBuilder()
-                .setFirstName(Users.FIRST_NAME)
-                .setLastName(Users.LAST_NAME)
-                .setEmail(Users.USER_EMAIL)
-                .setPassword(Users.PASSWORD)
-                .addRoles(Users.ROLE)
-                .build();
+            SignUpRequest req = SignUpRequest.newBuilder()
+                    .setFirstName(Users.FIRST_NAME)
+                    .setLastName(Users.LAST_NAME)
+                    .setEmail(Users.USER_EMAIL)
+                    .setPassword(Users.PASSWORD)
+                    .addRoles(Users.ROLE)
+                    .build();
 
-        StreamRecorder<SignUpResponse> responseObserver = StreamRecorder
-                .create();
-        grpcAuthService.signUp(req, responseObserver);
-        if (!responseObserver.awaitCompletion(5, TimeUnit.SECONDS)) {
-            fail("The call did not terminate in time");
+            StreamRecorder<SignUpResponse> responseObserver = StreamRecorder
+                    .create();
+            grpcAuthService.signUp(req, responseObserver);
+            if (!responseObserver.awaitCompletion(5, TimeUnit.SECONDS)) {
+                fail("The call did not terminate in time");
+            }
+            assertNull(responseObserver.getError());
+            List<SignUpResponse> results = responseObserver.getValues();
+            assertEquals(1, results.size());
+            assertThat(results).extracting(SignUpResponse::getId).contains(Users.USER_ID);
         }
-        assertNull(responseObserver.getError());
-        List<SignUpResponse> results = responseObserver.getValues();
-        assertEquals(1, results.size());
-        assertThat(results).extracting(SignUpResponse::getId).contains(Users.USER_ID);
-    }
 
-    @Test
-    public void testSignUpIfSomeFieldsAreEmpty() {
-        SignUpRequest req = SignUpRequest.newBuilder()
-                .setFirstName(Users.FIRST_NAME)
-                .setLastName("")
-                .setEmail(Users.USER_EMAIL)
-                .setPassword(Users.PASSWORD)
-                .addRoles(Users.ROLE)
-                .build();
+        @Test
+        public void givenEmptyDetails_thenIllegalArgumentExceptionShouldBeThrown() {
+            SignUpRequest req = SignUpRequest.newBuilder()
+                    .setFirstName(Users.FIRST_NAME)
+                    .setLastName("")
+                    .setEmail(Users.USER_EMAIL)
+                    .setPassword(Users.PASSWORD)
+                    .addRoles(Users.ROLE)
+                    .build();
 
-        StreamRecorder<SignUpResponse> responseObserver = StreamRecorder
-                .create();
-        Exception exception = assertThrows(IllegalArgumentException.class,
-                () -> grpcAuthService.signUp(req, responseObserver));
-        assertThat(exception.getMessage()).contains(UserUtils.MISSING_FIELDS_MSG);
-    }
+            StreamRecorder<SignUpResponse> responseObserver = StreamRecorder
+                    .create();
+            Exception exception = assertThrows(IllegalArgumentException.class,
+                    () -> grpcAuthService.signUp(req, responseObserver));
+            assertThat(exception.getMessage()).contains(UserUtils.MISSING_FIELDS_MSG);
+        }
 
-    @Test
-    public void testSignUpIfSomeFieldsAreMissing() {
-        SignUpRequest req = SignUpRequest.newBuilder()
-                .setPassword(Users.PASSWORD)
-                .addRoles(Users.ROLE)
-                .build();
+        @Test
+        public void givenMissingFields_thenIllegalArgumentExceptionShouldBeThrown() {
+            SignUpRequest req = SignUpRequest.newBuilder()
+                    .setPassword(Users.PASSWORD)
+                    .addRoles(Users.ROLE)
+                    .build();
 
-        StreamRecorder<SignUpResponse> responseObserver = StreamRecorder
-                .create();
-        Exception exception = assertThrows(IllegalArgumentException.class,
-                () -> grpcAuthService.signUp(req, responseObserver));
-        assertThat(exception.getMessage()).contains(UserUtils.MISSING_FIELDS_MSG);
-    }
+            StreamRecorder<SignUpResponse> responseObserver = StreamRecorder
+                    .create();
+            Exception exception = assertThrows(IllegalArgumentException.class,
+                    () -> grpcAuthService.signUp(req, responseObserver));
+            assertThat(exception.getMessage()).contains(UserUtils.MISSING_FIELDS_MSG);
+        }
 
-    @Test
-    public void testSignUpIfEmailAlreadyExists() {
-        when(service.existsByEmail(anyString()))
-                .thenReturn(true);
-        SignUpRequest req = SignUpRequest.newBuilder()
-                .setFirstName(Users.FIRST_NAME)
-                .setLastName(Users.LAST_NAME)
-                .setEmail(Users.USER_EMAIL)
-                .setPassword(Users.PASSWORD)
-                .addRoles(Users.ROLE)
-                .build();
+        @Test
+        public void givenEmailAlreadyExists_thenIllegalArgumentExceptionShouldBeThrown() {
+            when(service.existsByEmail(anyString()))
+                    .thenReturn(true);
+            SignUpRequest req = SignUpRequest.newBuilder()
+                    .setFirstName(Users.FIRST_NAME)
+                    .setLastName(Users.LAST_NAME)
+                    .setEmail(Users.USER_EMAIL)
+                    .setPassword(Users.PASSWORD)
+                    .addRoles(Users.ROLE)
+                    .build();
 
-        StreamRecorder<SignUpResponse> responseObserver = StreamRecorder
-                .create();
-        Exception exception = assertThrows(IllegalArgumentException.class,
-                () -> grpcAuthService.signUp(req, responseObserver));
-        assertThat(exception.getMessage()).contains(UserUtils.EMAIL_ALREADY_EXISTS_ERROR_MSG);
+            StreamRecorder<SignUpResponse> responseObserver = StreamRecorder
+                    .create();
+            Exception exception = assertThrows(IllegalArgumentException.class,
+                    () -> grpcAuthService.signUp(req, responseObserver));
+            assertThat(exception.getMessage()).contains(UserUtils.EMAIL_ALREADY_EXISTS_ERROR_MSG);
+        }
     }
 }

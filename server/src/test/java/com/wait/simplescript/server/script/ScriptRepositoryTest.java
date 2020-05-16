@@ -23,23 +23,25 @@ public class ScriptRepositoryTest {
     private ScriptRepository repository;
 
     @Test
-    public void testCreateScript() {
+    public void givenValidDetails_thenScriptShouldBeSavedAndReturned() {
         Script script = repository.save(Scripts.SINGLE_OPERATION_SCRIPT);
         assertThat(script).isNotNull();
         assertThat(repository.count()).isEqualTo(1L);
     }
 
     @Test
-    public void testFindByIdWithKnownId() {
+    public void givenValidId_thenScriptShouldBeReturned() {
         repository.save(Scripts.SINGLE_OPERATION_SCRIPT);
-        Optional<Script> optionalScript = repository.findById(Scripts.SCRIPT_ID);
+        Optional<Script> optionalScript =
+                repository.findById(Scripts.SCRIPT_ID);
         assertThat(optionalScript).isNotEmpty();
         assertEquals(Scripts.SCRIPT_ID, optionalScript.get().getId());
     }
 
     @Test
-    public void testFindByIdWithUnknownId() {
-        Optional<Script> optionalScript = repository.findById(Scripts.SCRIPT_ID);
+    public void givenInvalidId_thenScriptShouldNotBeReturned() {
+        Optional<Script> optionalScript =
+                repository.findById(Scripts.SCRIPT_ID);
         assertThat(optionalScript).isEmpty();
     }
 }

@@ -17,7 +17,7 @@ import static org.mockito.Mockito.when;
 
 public class ApplicationUserDetailsServiceTest {
     @Test
-    public void testLoadingUserWithExistingUsername() {
+    public void givenExistingUsername_whenLoadingUser_userIsReturned() {
         UserRepository userRepository = mock(UserRepository.class);
         ApplicationUserDetailsService service =
                 new ApplicationUserDetailsService(userRepository);
@@ -39,7 +39,7 @@ public class ApplicationUserDetailsServiceTest {
     }
 
     @Test
-    public void testLoadingUserWithNonExistingUsername() {
+    public void givenNotExistingUsername_whenLoadingUser_UsernameNotFoundExceptionIsThrown() {
         UserRepository repository = mock(UserRepository.class);
         ApplicationUserDetailsService service =
                 new ApplicationUserDetailsService(
@@ -49,6 +49,7 @@ public class ApplicationUserDetailsServiceTest {
 
         Exception exception = assertThrows(UsernameNotFoundException.class,
                 () -> service.loadUserByUsername(Users.USER_EMAIL));
-        assertThat(exception.getMessage()).contains("User with email first@last.com could not be found");
+        assertThat(exception.getMessage()).contains("User with email " +
+                "first@last.com could not be found");
     }
 }

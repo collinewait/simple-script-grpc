@@ -10,6 +10,7 @@ import com.wait.simplescript.server.user.User;
 import com.wait.simplescript.server.user.UserService;
 import com.wait.simplescript.server.user.Users;
 import io.grpc.internal.testing.StreamRecorder;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,174 +37,187 @@ public class GrpcScriptServiceTest {
     @Autowired
     private GrpcScriptService grpcScriptService;
 
-    @Test
-    @WithMockAuthenticatedUser
-    public void testCreateScriptWithSingleOperation() throws Exception {
-        when(userService.getUser(anyString()))
-                .thenReturn(Optional.of(Users.user()));
-        when(scriptService.createScript(any(User.class), anyString()))
-                .thenReturn(Scripts.SINGLE_OPERATION_SCRIPT);
+    @Nested
+    class CreateScript {
+        @Test
+        @WithMockAuthenticatedUser
+        public void givenValidSingleOperation_thenResponseShouldContainScript() throws Exception {
+            when(userService.getUser(anyString()))
+                    .thenReturn(Optional.of(Users.user()));
+            when(scriptService.createScript(any(User.class), anyString()))
+                    .thenReturn(Scripts.SINGLE_OPERATION_SCRIPT);
 
-        ScriptOperationsReq req = ScriptOperationsReq.newBuilder()
-                .addAllOperations(Collections.singletonList(ScriptUtils.DO_THIS))
-                .build();
+            ScriptOperationsReq req = ScriptOperationsReq.newBuilder()
+                    .addAllOperations(Collections.singletonList(ScriptUtils.DO_THIS))
+                    .build();
 
-        StreamRecorder<ScriptRes> responseObserver = StreamRecorder
-                .create();
-        grpcScriptService.createScript(req, responseObserver);
-        if (!responseObserver.awaitCompletion(5, TimeUnit.SECONDS)) {
-            fail("The call did not terminate in time");
+            StreamRecorder<ScriptRes> responseObserver = StreamRecorder
+                    .create();
+            grpcScriptService.createScript(req, responseObserver);
+            if (!responseObserver.awaitCompletion(5, TimeUnit.SECONDS)) {
+                fail("The call did not terminate in time");
+            }
+            assertNull(responseObserver.getError());
+            List<ScriptRes> results = responseObserver.getValues();
+            assertEquals(1, results.size());
+            assertThat(results).extracting(ScriptRes::getId).contains
+                    (Scripts.SCRIPT_ID);
+            assertThat(results).extracting(ScriptRes::getScriptValue).contains
+                    (ScriptUtils.DO_THIS);
         }
-        assertNull(responseObserver.getError());
-        List<ScriptRes> results = responseObserver.getValues();
-        assertEquals(1, results.size());
-        assertThat(results).extracting(ScriptRes::getId).contains
-                (Scripts.SCRIPT_ID);
-        assertThat(results).extracting(ScriptRes::getScriptValue).contains
-                (ScriptUtils.DO_THIS);
-    }
 
-    @Test
-    @WithMockAuthenticatedUser
-    public void testCreateScriptWithMultipleOperations() throws Exception {
-        when(userService.getUser(anyString()))
-                .thenReturn(Optional.of(Users.user()));
-        when(scriptService.createScript(any(User.class), anyString()))
-                .thenReturn(Scripts.MULTIPLE_OPERATIONS_SCRIPT);
+        @Test
+        @WithMockAuthenticatedUser
+        public void givenValidMultipleOperations_thenResponseShouldContainScript() throws Exception {
+            when(userService.getUser(anyString()))
+                    .thenReturn(Optional.of(Users.user()));
+            when(scriptService.createScript(any(User.class), anyString()))
+                    .thenReturn(Scripts.MULTIPLE_OPERATIONS_SCRIPT);
 
-        ScriptOperationsReq req = ScriptOperationsReq.newBuilder()
-                .addAllOperations(Arrays.asList(ScriptUtils.DO_THIS,
-                        ScriptUtils.DO_THIS))
-                .build();
+            ScriptOperationsReq req = ScriptOperationsReq.newBuilder()
+                    .addAllOperations(Arrays.asList(ScriptUtils.DO_THIS,
+                            ScriptUtils.DO_THIS))
+                    .build();
 
-        StreamRecorder<ScriptRes> responseObserver = StreamRecorder
-                .create();
-        grpcScriptService.createScript(req, responseObserver);
-        if (!responseObserver.awaitCompletion(5, TimeUnit.SECONDS)) {
-            fail("The call did not terminate in time");
+            StreamRecorder<ScriptRes> responseObserver = StreamRecorder
+                    .create();
+            grpcScriptService.createScript(req, responseObserver);
+            if (!responseObserver.awaitCompletion(5, TimeUnit.SECONDS)) {
+                fail("The call did not terminate in time");
+            }
+            assertNull(responseObserver.getError());
+            List<ScriptRes> results = responseObserver.getValues();
+            assertEquals(1, results.size());
+            assertThat(results).extracting(ScriptRes::getId).contains
+                    (Scripts.SCRIPT_ID);
+            assertThat(results).extracting(ScriptRes::getScriptValue).contains
+                    (Scripts.MULTIPLE_OPERATIONS_SCRIPT_VALUE);
         }
-        assertNull(responseObserver.getError());
-        List<ScriptRes> results = responseObserver.getValues();
-        assertEquals(1, results.size());
-        assertThat(results).extracting(ScriptRes::getId).contains
-                (Scripts.SCRIPT_ID);
-        assertThat(results).extracting(ScriptRes::getScriptValue).contains
-                (Scripts.MULTIPLE_OPERATIONS_SCRIPT_VALUE);
-    }
 
-    @Test
-    @WithMockAuthenticatedUser
-    public void testCreateScriptWithEmptyOperations() {
-        when(userService.getUser(anyString()))
-                .thenReturn(Optional.of(Users.user()));
+        @Test
+        @WithMockAuthenticatedUser
+        public void givenEmptyOperations_thenInvalidOperationExceptionShouldBeThrown() {
+            when(userService.getUser(anyString()))
+                    .thenReturn(Optional.of(Users.user()));
 
-        List<String> operations = new ArrayList<>();
-        ScriptOperationsReq req = ScriptOperationsReq.newBuilder()
-                .addAllOperations(operations)
-                .build();
+            List<String> operations = new ArrayList<>();
+            ScriptOperationsReq req = ScriptOperationsReq.newBuilder()
+                    .addAllOperations(operations)
+                    .build();
 
-        StreamRecorder<ScriptRes> responseObserver = StreamRecorder
-                .create();
+            StreamRecorder<ScriptRes> responseObserver = StreamRecorder
+                    .create();
 
-        Exception exception = assertThrows(InvalidOperationException.class,
-                () -> grpcScriptService.createScript(req, responseObserver));
-        assertThat(exception.getMessage()).contains(ScriptUtils.MISSING_OPERATIONS_MSG);
-    }
-
-    @Test
-    @WithMockAuthenticatedUser
-    public void testCreateScriptWithSingleInvalidOperation() {
-        when(userService.getUser(anyString()))
-                .thenReturn(Optional.of(Users.user()));
-
-        ScriptOperationsReq req = ScriptOperationsReq.newBuilder()
-                .addAllOperations(Collections.singletonList(
-                        "SomeInvalidOperationHere"))
-                .build();
-
-        StreamRecorder<ScriptRes> responseObserver = StreamRecorder
-                .create();
-
-        Exception exception = assertThrows(InvalidOperationException.class,
-                () -> grpcScriptService.createScript(req, responseObserver));
-        assertThat(exception.getMessage()).contains(ScriptUtils.INVALID_OPERATIONS_MSG);
-    }
-
-    @Test
-    @WithMockAuthenticatedUser
-    public void testCreateScriptWithMultipleInvalidOperations() {
-        when(userService.getUser(anyString()))
-                .thenReturn(Optional.of(Users.user()));
-
-        ScriptOperationsReq req = ScriptOperationsReq.newBuilder()
-                .addAllOperations(Arrays.asList("SomeInvalidOperationHere", ""))
-                .build();
-
-        StreamRecorder<ScriptRes> responseObserver = StreamRecorder
-                .create();
-
-        Exception exception = assertThrows(InvalidOperationException.class,
-                () -> grpcScriptService.createScript(req, responseObserver));
-        assertThat(exception.getMessage()).contains(ScriptUtils.INVALID_OPERATIONS_MSG);
-    }
-
-    @Test
-    @WithMockAuthenticatedUser
-    public void testCreateScriptWithLatInvalidOperation() {
-        when(userService.getUser(anyString()))
-                .thenReturn(Optional.of(Users.user()));
-
-        ScriptOperationsReq req = ScriptOperationsReq.newBuilder()
-                .addAllOperations(Arrays.asList(ScriptUtils.DO_THIS, ""))
-                .build();
-
-        StreamRecorder<ScriptRes> responseObserver = StreamRecorder
-                .create();
-
-        Exception exception = assertThrows(InvalidOperationException.class,
-                () -> grpcScriptService.createScript(req, responseObserver));
-        assertThat(exception.getMessage()).contains(ScriptUtils.INVALID_OPERATIONS_MSG);
-    }
-
-    @Test
-    @WithMockAuthenticatedUser
-    public void testFindById() throws Exception {
-        when(scriptService.findById(anyString())).thenReturn(Optional.of(Scripts.SINGLE_OPERATION_SCRIPT));
-
-        SingleScriptReq req = SingleScriptReq.newBuilder()
-                .setId(Scripts.SCRIPT_ID)
-                .build();
-
-        StreamRecorder<ScriptRes> responseObserver = StreamRecorder
-                .create();
-        grpcScriptService.getScript(req, responseObserver);
-        if (!responseObserver.awaitCompletion(5, TimeUnit.SECONDS)) {
-            fail("The call did not terminate in time");
+            Exception exception = assertThrows(InvalidOperationException.class,
+                    () -> grpcScriptService.createScript(req,
+                            responseObserver));
+            assertThat(exception.getMessage()).contains(ScriptUtils.MISSING_OPERATIONS_MSG);
         }
-        assertNull(responseObserver.getError());
-        List<ScriptRes> results = responseObserver.getValues();
-        assertEquals(1, results.size());
-        assertThat(results).extracting(ScriptRes::getId).contains
-                (Scripts.SCRIPT_ID);
-        assertThat(results).extracting(ScriptRes::getScriptValue).contains
-                (ScriptUtils.DO_THIS);
+
+        @Test
+        @WithMockAuthenticatedUser
+        public void givenSingleInvalidOperation_thenInvalidOperationExceptionShouldBeThrown() {
+            when(userService.getUser(anyString()))
+                    .thenReturn(Optional.of(Users.user()));
+
+            ScriptOperationsReq req = ScriptOperationsReq.newBuilder()
+                    .addAllOperations(Collections.singletonList(
+                            "SomeInvalidOperationHere"))
+                    .build();
+
+            StreamRecorder<ScriptRes> responseObserver = StreamRecorder
+                    .create();
+
+            Exception exception = assertThrows(InvalidOperationException.class,
+                    () -> grpcScriptService.createScript(req,
+                            responseObserver));
+            assertThat(exception.getMessage()).contains(ScriptUtils.INVALID_OPERATIONS_MSG);
+        }
+
+        @Test
+        @WithMockAuthenticatedUser
+        public void givenMultipleInvalidOperations_thenInvalidOperationExceptionShouldBeThrown() {
+            when(userService.getUser(anyString()))
+                    .thenReturn(Optional.of(Users.user()));
+
+            ScriptOperationsReq req = ScriptOperationsReq.newBuilder()
+                    .addAllOperations(Arrays.asList("SomeInvalidOperationHere"
+                            , ""))
+                    .build();
+
+            StreamRecorder<ScriptRes> responseObserver = StreamRecorder
+                    .create();
+
+            Exception exception = assertThrows(InvalidOperationException.class,
+                    () -> grpcScriptService.createScript(req,
+                            responseObserver));
+            assertThat(exception.getMessage()).contains(ScriptUtils.INVALID_OPERATIONS_MSG);
+        }
+
+
+        @Test
+        @WithMockAuthenticatedUser
+        public void givenLatInvalidOperation_thenInvalidOperationExceptionShouldBeThrown() {
+            when(userService.getUser(anyString()))
+                    .thenReturn(Optional.of(Users.user()));
+
+            ScriptOperationsReq req = ScriptOperationsReq.newBuilder()
+                    .addAllOperations(Arrays.asList(ScriptUtils.DO_THIS, ""))
+                    .build();
+
+            StreamRecorder<ScriptRes> responseObserver = StreamRecorder
+                    .create();
+
+            Exception exception = assertThrows(InvalidOperationException.class,
+                    () -> grpcScriptService.createScript(req,
+                            responseObserver));
+            assertThat(exception.getMessage()).contains(ScriptUtils.INVALID_OPERATIONS_MSG);
+        }
     }
 
-    @Test
-    @WithMockAuthenticatedUser
-    public void testFindByIdWithAnInvalidId() {
-        when(scriptService.findById(anyString())).thenReturn(Optional.empty());
+    @Nested
+    class FindById {
+        @Test
+        @WithMockAuthenticatedUser
+        public void givenValidId_thenResponseShouldContainScript() throws Exception {
+            when(scriptService.findById(anyString())).thenReturn(Optional.of(Scripts.SINGLE_OPERATION_SCRIPT));
 
-        SingleScriptReq req = SingleScriptReq.newBuilder()
-                .setId(Scripts.SCRIPT_ID)
-                .build();
+            SingleScriptReq req = SingleScriptReq.newBuilder()
+                    .setId(Scripts.SCRIPT_ID)
+                    .build();
 
-        StreamRecorder<ScriptRes> responseObserver = StreamRecorder
-                .create();
+            StreamRecorder<ScriptRes> responseObserver = StreamRecorder
+                    .create();
+            grpcScriptService.getScript(req, responseObserver);
+            if (!responseObserver.awaitCompletion(5, TimeUnit.SECONDS)) {
+                fail("The call did not terminate in time");
+            }
+            assertNull(responseObserver.getError());
+            List<ScriptRes> results = responseObserver.getValues();
+            assertEquals(1, results.size());
+            assertThat(results).extracting(ScriptRes::getId).contains
+                    (Scripts.SCRIPT_ID);
+            assertThat(results).extracting(ScriptRes::getScriptValue).contains
+                    (ScriptUtils.DO_THIS);
+        }
 
-        Exception exception = assertThrows(ScriptNotFoundException.class,
-                () -> grpcScriptService.getScript(req, responseObserver));
-        assertThat(exception.getMessage()).contains(String.format("Could not " +
-                "find script with id %s", Scripts.SCRIPT_ID));
+        @Test
+        @WithMockAuthenticatedUser
+        public void givenInvalidId_thenScriptNotFoundExceptionShouldBeThrown() {
+            when(scriptService.findById(anyString())).thenReturn(Optional.empty());
+
+            SingleScriptReq req = SingleScriptReq.newBuilder()
+                    .setId(Scripts.SCRIPT_ID)
+                    .build();
+
+            StreamRecorder<ScriptRes> responseObserver = StreamRecorder
+                    .create();
+
+            Exception exception = assertThrows(ScriptNotFoundException.class,
+                    () -> grpcScriptService.getScript(req, responseObserver));
+            assertThat(exception.getMessage()).contains(String.format("Could " +
+                    "not " +
+                    "find script with id %s", Scripts.SCRIPT_ID));
+        }
     }
 }

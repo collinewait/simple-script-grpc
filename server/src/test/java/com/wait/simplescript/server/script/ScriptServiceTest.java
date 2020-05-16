@@ -25,7 +25,7 @@ public class ScriptServiceTest {
     @Nested
     class FindById {
         @Test
-        public void whenValidId_thenScriptShouldBeReturned() {
+        public void givenValidId_thenScriptShouldBeReturned() {
             when(scriptRepository.findById(anyString()))
                     .thenReturn(Optional.of(Scripts.SINGLE_OPERATION_SCRIPT));
             Optional<Script> script = scriptService.findById(Scripts.SCRIPT_ID);
@@ -34,7 +34,7 @@ public class ScriptServiceTest {
         }
 
         @Test
-        public void whenInvalidId_thenScriptShouldNotBeReturned() {
+        public void givenInvalidId_thenScriptShouldNotBeReturned() {
             when(scriptRepository.findById(anyString()))
                     .thenReturn(Optional.empty());
             Optional<Script> script = scriptService.findById(Scripts.SCRIPT_ID);
