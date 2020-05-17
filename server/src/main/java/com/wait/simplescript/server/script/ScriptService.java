@@ -10,4 +10,5 @@ public interface ScriptService {
     Optional<Script> findById(String id);
     List<Script> findAll();
     Script update(Script script);
+    String deleteById(String id);
 }

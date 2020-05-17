@@ -77,4 +77,16 @@ public class ScriptRepositoryTest {
         assertEquals(Scripts.MULTIPLE_OPERATIONS_SCRIPT_VALUE, updatedScript.getScriptValue());
         assertEquals(1, repository.count());
     }
+
+    @Test
+    public void givenValidId_thenScriptShouldBeDeleted() {
+        Script mockScript = Script.createScript(Users.user(),
+                Scripts.SINGLE_SCRIPT_VALUE, new ArrayList<>());
+        mockScript.setId("validDetails34");
+        Script savedScript = repository.save(mockScript);
+        assertEquals(1, repository.count());
+
+        repository.deleteById(savedScript.getId());
+        assertEquals(0, repository.count());
+    }
 }

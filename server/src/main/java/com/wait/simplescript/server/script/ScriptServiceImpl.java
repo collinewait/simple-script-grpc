@@ -37,4 +37,10 @@ public class ScriptServiceImpl implements ScriptService {
     public Script update(Script script) {
         return scriptRepository.save(script);
     }
+
+    @Override
+    public String deleteById(String id) {
+        scriptRepository.deleteById(id);
+        return "success";
+    }
 }

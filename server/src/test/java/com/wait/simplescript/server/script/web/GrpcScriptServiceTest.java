@@ -312,7 +312,8 @@ public class GrpcScriptServiceTest {
                     .create();
 
             Exception exception = assertThrows(ScriptNotFoundException.class,
-                    () -> grpcScriptService.updateScript(req, responseObserver));
+                    () -> grpcScriptService.updateScript(req,
+                            responseObserver));
             assertThat(exception.getMessage()).contains(String.format("Could " +
                     "not " +
                     "find script with id %s", req.getScriptId()));
@@ -322,7 +323,8 @@ public class GrpcScriptServiceTest {
         @WithMockAuthenticatedUser
         public void givenSameOperations_thenExecutedOutPutShouldNotChange() throws Exception {
             Script mockScript = Script.createScript(Users.user(),
-                    Scripts.SINGLE_SCRIPT_VALUE, Collections.singletonList("19"));
+                    Scripts.SINGLE_SCRIPT_VALUE, Collections.singletonList(
+                            "19"));
             mockScript.setId("same28999");
 
             when(scriptService.findById(anyString()))
@@ -352,7 +354,8 @@ public class GrpcScriptServiceTest {
         @WithMockAuthenticatedUser
         public void givenDifferentOperations_thenExecutedOutPutShouldBeEmpty() throws Exception {
             Script mockScript = Script.createScript(Users.user(),
-                    Scripts.SINGLE_SCRIPT_VALUE, Collections.singletonList("19"));
+                    Scripts.SINGLE_SCRIPT_VALUE, Collections.singletonList(
+                            "19"));
             mockScript.setId("different99999");
             when(scriptService.findById(anyString()))
                     .thenReturn(Optional.of(mockScript));
@@ -361,7 +364,8 @@ public class GrpcScriptServiceTest {
 
             ScriptUpdateReq req = ScriptUpdateReq.newBuilder()
                     .setScriptId(mockScript.getId())
-                    .addAllOperations(Arrays.asList(ScriptUtils.DO_THIS, ScriptUtils.DO_THIS))
+                    .addAllOperations(Arrays.asList(ScriptUtils.DO_THIS,
+                            ScriptUtils.DO_THIS))
                     .build();
 
             StreamRecorder<ScriptRes> responseObserver = StreamRecorder
@@ -374,6 +378,55 @@ public class GrpcScriptServiceTest {
             List<ScriptRes> results = responseObserver.getValues();
             assertEquals(1, results.size());
             assertEquals(0, results.get(0).getExecutedOutputList().size());
+        }
+    }
+
+    @Nested
+    class Delete {
+        @Test
+        @WithMockAuthenticatedUser
+        public void givenValidId_thenScriptShouldBeDeleted() throws Exception {
+            Script mockScript = Script.createScript(Users.user(),
+                    Scripts.SINGLE_SCRIPT_VALUE, new ArrayList<>());
+            mockScript.setId("toBeDeleted99");
+            when(scriptService.findById(anyString()))
+                    .thenReturn(Optional.of(mockScript));
+            when(scriptService.deleteById(anyString()))
+                    .thenReturn("success");
+
+            SingleScriptReq req = SingleScriptReq.newBuilder()
+                    .setId("toBeDeleted99")
+                    .build();
+
+            StreamRecorder<EmptyRes> responseObserver = StreamRecorder
+                    .create();
+            grpcScriptService.deleteScript(req, responseObserver);
+            if (!responseObserver.awaitCompletion(5, TimeUnit.SECONDS)) {
+                fail("The call did not terminate in time");
+            }
+            assertNull(responseObserver.getError());
+            List<EmptyRes> results = responseObserver.getValues();
+            assertEquals(1, results.size());
+        }
+
+        @Test
+        @WithMockAuthenticatedUser
+        public void givenInvalidId_thenScriptNotFoundExceptionShouldBeThrown() {
+            when(scriptService.findById(anyString()))
+                    .thenReturn(Optional.empty());
+
+            SingleScriptReq req = SingleScriptReq.newBuilder()
+                    .setId("toBeDeleted99")
+                    .build();
+
+            StreamRecorder<EmptyRes> responseObserver = StreamRecorder
+                    .create();
+
+            Exception exception = assertThrows(ScriptNotFoundException.class,
+                    () -> grpcScriptService.deleteScript(req,
+                            responseObserver));
+            assertThat(exception.getMessage()).contains("Could not find " +
+                    "script with id toBeDeleted99");
         }
     }
 }

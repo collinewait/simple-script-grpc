@@ -116,4 +116,20 @@ public class GrpcScriptService extends ScriptServiceGrpc.ScriptServiceImplBase {
         responseObserver.onNext(res);
         responseObserver.onCompleted();
     }
+
+    @Override
+    @Secured("ROLE_USER")
+    public void deleteScript(SingleScriptReq req,
+                             StreamObserver<EmptyRes> responseObserver) {
+        String scriptId = req.getId();
+        scriptService.findById(req.getId()).orElseThrow(
+                () -> new ScriptNotFoundException(scriptId));
+
+        scriptService.deleteById(scriptId);
+
+        EmptyRes res = EmptyRes.newBuilder()
+                .build();
+        responseObserver.onNext(res);
+        responseObserver.onCompleted();
+    }
 }

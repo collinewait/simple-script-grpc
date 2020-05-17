@@ -5,17 +5,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class ScriptServiceTest {
     private ScriptService scriptService;
@@ -95,6 +91,17 @@ public class ScriptServiceTest {
             assertThat(script).isNotNull();
             assertEquals(Scripts.MULTIPLE_OPERATIONS_SCRIPT_VALUE,
                     script.getScriptValue());
+        }
+    }
+
+    @Nested
+    class Delete {
+        @Test
+        public void givenValidId_thenScriptShouldBeDeleted() {
+            doNothing().when(scriptRepository).deleteById(anyString());
+
+            String status = scriptService.deleteById("validId34");
+            assertEquals("success", status);
         }
     }
 }
