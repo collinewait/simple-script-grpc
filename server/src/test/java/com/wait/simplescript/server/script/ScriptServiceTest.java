@@ -1,13 +1,18 @@
 package com.wait.simplescript.server.script;
 
+import com.wait.simplescript.server.user.Users;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -20,6 +25,19 @@ public class ScriptServiceTest {
     public void setUp() {
         scriptRepository = mock(ScriptRepository.class);
         scriptService = new ScriptServiceImpl(scriptRepository);
+    }
+
+    @Nested
+    class CreateScript {
+        @Test
+        public void givenValidDetails_thenScriptShouldBeReturned() {
+            when(scriptRepository.save(any(Script.class))).thenReturn(Scripts
+                    .SINGLE_OPERATION_SCRIPT);
+            Script script = scriptService.createScript(Users.user(),
+                    Scripts.SINGLE_SCRIPT_VALUE);
+            assertThat(script).isNotNull();
+            assertEquals(Scripts.SCRIPT_ID, script.getId());
+        }
     }
 
     @Nested
