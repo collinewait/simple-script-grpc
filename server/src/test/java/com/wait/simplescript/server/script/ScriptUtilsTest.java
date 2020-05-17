@@ -68,4 +68,40 @@ public class ScriptUtilsTest {
             assertThat(exception.getMessage()).contains(ScriptUtils.INVALID_OPERATIONS_MSG);
         }
     }
+
+    @Nested
+    class ExecuteScriptValue {
+        @Test
+        public void givenSingleScriptValueStartsWithDoThis_thenExpectedOutputShouldBeReturned() {
+            String scriptValue = ScriptUtils.DO_THIS;
+            List<String> output = ScriptUtils.executeScriptValue(scriptValue);
+            assertEquals(1, output.size());
+            assertEquals("19", output.get(0));
+        }
+
+        @Test
+        public void givenSingleScriptValueStartsWithDoThat_thenExpectedOutputShouldBeReturned() {
+            String scriptValue = ScriptUtils.DO_THAT;
+            List<String> output = ScriptUtils.executeScriptValue(scriptValue);
+            assertEquals(1, output.size());
+            assertEquals("ger)", output.get(0));
+        }
+
+        @Test
+        public void givenSingleScriptValueStartsWithDoTheOther_thenExpectedOutputShouldBeReturned() {
+            String scriptValue = ScriptUtils.DO_THE;
+            List<String> output = ScriptUtils.executeScriptValue(scriptValue);
+            assertEquals(1, output.size());
+            assertEquals("DoTheOtherThing(float)", output.get(0));
+        }
+
+        @Test
+        public void givenMultipleScriptContainsBothDOThaTAndDoThis_thenExpectedOutputShouldBeReturned() {
+            String scriptValue = String.format("%s\n%s", ScriptUtils.DO_THIS, ScriptUtils.DO_THAT);
+            List<String> output = ScriptUtils.executeScriptValue(scriptValue);
+            assertEquals(2, output.size());
+            assertEquals("19", output.get(0));
+            assertEquals("ger)", output.get(1));
+        }
+    }
 }

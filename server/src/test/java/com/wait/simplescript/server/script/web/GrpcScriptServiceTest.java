@@ -429,4 +429,59 @@ public class GrpcScriptServiceTest {
                     "script with id toBeDeleted99");
         }
     }
+
+    @Nested
+    class ExecuteScript {
+        @Test
+        @WithMockAuthenticatedUser
+        public void givenScriptId_thenResponseShouldContainUpdatedExecutedScriptOutput() throws Exception {
+            Script mockScript = Script.createScript(Users.user(),
+                    Scripts.SINGLE_SCRIPT_VALUE, new ArrayList<>());
+            mockScript.setId("executedOutput22");
+            Script mockScriptWithExecutedOutput =
+                    Script.createScript(Users.user(),
+                    Scripts.SINGLE_SCRIPT_VALUE, Collections.singletonList("19"));
+            mockScriptWithExecutedOutput.setId("executedOutput22");
+            when(scriptService.findById(anyString()))
+                    .thenReturn(Optional.of(mockScript));
+            when(scriptService.update(any(Script.class)))
+                    .thenReturn(mockScriptWithExecutedOutput);
+
+            SingleScriptReq req = SingleScriptReq.newBuilder()
+                    .setId("executedOutput22")
+                    .build();
+
+            StreamRecorder<ScriptRes> responseObserver = StreamRecorder
+                    .create();
+            grpcScriptService.executeScript(req, responseObserver);
+            if (!responseObserver.awaitCompletion(5, TimeUnit.SECONDS)) {
+                fail("The call did not terminate in time");
+            }
+            assertNull(responseObserver.getError());
+            List<ScriptRes> results = responseObserver.getValues();
+            assertEquals(1, results.size());
+            assertEquals(1, results.get(0).getExecutedOutputList().size());
+            assertEquals("19", results.get(0).getExecutedOutputList().get(0));
+        }
+
+        @Test
+        @WithMockAuthenticatedUser
+        public void givenInvalidScriptId_thenScriptNotFoundExceptionShouldBeThrow() {
+            when(scriptService.findById(anyString()))
+                    .thenReturn(Optional.empty());
+
+            SingleScriptReq req = SingleScriptReq.newBuilder()
+                    .setId("fakeId")
+                    .build();
+
+            StreamRecorder<ScriptRes> responseObserver = StreamRecorder
+                    .create();
+
+            Exception exception = assertThrows(ScriptNotFoundException.class,
+                    () -> grpcScriptService.executeScript(req,
+                            responseObserver));
+            assertThat(exception.getMessage()).contains("Could not find " +
+                    "script with id fakeId");
+        }
+    }
 }

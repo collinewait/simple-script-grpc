@@ -1,6 +1,7 @@
 package com.wait.simplescript.server.script;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ScriptUtils {
     public static final String DO_THIS = "DoThisThing(string)";
@@ -48,5 +49,17 @@ public class ScriptUtils {
             return script;
         }
         throw new InvalidOperationException(INVALID_OPERATIONS_MSG);
+    }
+
+    public static List<String> executeScriptValue(String scriptValue) {
+        String[] operations = scriptValue.split("\n");
+        return Arrays.stream(operations).map(operation -> {
+            if (operation.startsWith("DoThis")) {
+                return String.valueOf(operation.length());
+            } else if (operation.startsWith("DoThat")) {
+                return operation.substring(operation.length() - 4);
+            }
+            return operation.substring(operation.length() % 2);
+        }).collect(Collectors.toList());
     }
 }

@@ -10,6 +10,7 @@ service ScriptService {
   rpc GetAllScripts (EmptyReq) returns (ScriptListRes) {}
   rpc UpdateScript (ScriptUpdateReq) returns (ScriptRes) {}
   rpc DeleteScript (SingleScriptReq) returns (EmptyRes) {}
+  rpc ExecuteScript (SingleScriptReq) returns (ScriptRes) {}
 }
 
 message ScriptOperationsReq {
