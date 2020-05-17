@@ -9,4 +9,5 @@ public interface ScriptService {
     Script createScript(User user, String scriptValue);
     Optional<Script> findById(String id);
     List<Script> findAll();
+    Script update(Script script);
 }

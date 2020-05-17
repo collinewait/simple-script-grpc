@@ -1,6 +1,7 @@
 package com.wait.simplescript.server.script;
 
 import com.wait.simplescript.server.infrastructure.SpringProfiles;
+import com.wait.simplescript.server.user.Users;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -60,5 +62,19 @@ public class ScriptRepositoryTest {
         List<Script> scripts = repository.findAll();
         assertThat(scripts).isNotNull();
         assertEquals(0, scripts.size());
+    }
+
+    @Test
+    public void givenValidDetails_thenAnUpdatedScriptShouldBeReturned() {
+        Script mockScript = Script.createScript(Users.user(),
+                Scripts.SINGLE_SCRIPT_VALUE, new ArrayList<>());
+        mockScript.setId("validDetails34");
+        Script script = repository.save(mockScript);
+        script.setScriptValue(Scripts.MULTIPLE_OPERATIONS_SCRIPT_VALUE);
+
+        Script updatedScript = repository.save(script);
+        assertThat(updatedScript).isNotNull();
+        assertEquals(Scripts.MULTIPLE_OPERATIONS_SCRIPT_VALUE, updatedScript.getScriptValue());
+        assertEquals(1, repository.count());
     }
 }

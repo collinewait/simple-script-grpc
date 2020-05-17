@@ -264,4 +264,116 @@ public class GrpcScriptServiceTest {
             assertEquals(0, results.get(0).getScriptsList().size());
         }
     }
+
+    @Nested
+    class Update {
+        @Test
+        @WithMockAuthenticatedUser
+        public void givenValidOperationAndScriptId_thenResponseShouldContainUpdatedScript() throws Exception {
+            Script mockScript = Script.createScript(Users.user(),
+                    Scripts.SINGLE_SCRIPT_VALUE, new ArrayList<>());
+            mockScript.setId("validOpsAndScript99");
+            when(scriptService.findById(anyString()))
+                    .thenReturn(Optional.of(mockScript));
+            when(scriptService.update(any(Script.class)))
+                    .thenReturn(Scripts.MULTIPLE_OPERATIONS_SCRIPT);
+
+            ScriptUpdateReq req = ScriptUpdateReq.newBuilder()
+                    .setScriptId(mockScript.getId())
+                    .addAllOperations(Arrays.asList(ScriptUtils.DO_THIS,
+                            ScriptUtils.DO_THIS))
+                    .build();
+
+            StreamRecorder<ScriptRes> responseObserver = StreamRecorder
+                    .create();
+            grpcScriptService.updateScript(req, responseObserver);
+            if (!responseObserver.awaitCompletion(5, TimeUnit.SECONDS)) {
+                fail("The call did not terminate in time");
+            }
+            assertNull(responseObserver.getError());
+            List<ScriptRes> results = responseObserver.getValues();
+            assertEquals(1, results.size());
+            assertThat(results).extracting(ScriptRes::getScriptValue).contains
+                    (Scripts.MULTIPLE_OPERATIONS_SCRIPT_VALUE);
+        }
+
+        @Test
+        @WithMockAuthenticatedUser
+        public void givenInvalidScriptId_thenScriptNotFoundExceptionShouldBeThrow() {
+            when(scriptService.findById(anyString()))
+                    .thenReturn(Optional.empty());
+
+            ScriptUpdateReq req = ScriptUpdateReq.newBuilder()
+                    .addAllOperations(Arrays.asList(ScriptUtils.DO_THIS,
+                            ScriptUtils.DO_THIS))
+                    .build();
+
+            StreamRecorder<ScriptRes> responseObserver = StreamRecorder
+                    .create();
+
+            Exception exception = assertThrows(ScriptNotFoundException.class,
+                    () -> grpcScriptService.updateScript(req, responseObserver));
+            assertThat(exception.getMessage()).contains(String.format("Could " +
+                    "not " +
+                    "find script with id %s", req.getScriptId()));
+        }
+
+        @Test
+        @WithMockAuthenticatedUser
+        public void givenSameOperations_thenExecutedOutPutShouldNotChange() throws Exception {
+            Script mockScript = Script.createScript(Users.user(),
+                    Scripts.SINGLE_SCRIPT_VALUE, Collections.singletonList("19"));
+            mockScript.setId("same28999");
+
+            when(scriptService.findById(anyString()))
+                    .thenReturn(Optional.of(mockScript));
+            when(scriptService.update(any(Script.class)))
+                    .thenReturn(mockScript);
+
+            ScriptUpdateReq req = ScriptUpdateReq.newBuilder()
+                    .setScriptId(mockScript.getId())
+                    .addAllOperations(Collections.singletonList(ScriptUtils.DO_THIS))
+                    .build();
+
+            StreamRecorder<ScriptRes> responseObserver = StreamRecorder
+                    .create();
+            grpcScriptService.updateScript(req, responseObserver);
+            if (!responseObserver.awaitCompletion(5, TimeUnit.SECONDS)) {
+                fail("The call did not terminate in time");
+            }
+            assertNull(responseObserver.getError());
+            List<ScriptRes> results = responseObserver.getValues();
+            assertEquals(1, results.size());
+            assertEquals(1, results.get(0).getExecutedOutputList().size());
+            assertEquals("19", results.get(0).getExecutedOutput(0));
+        }
+
+        @Test
+        @WithMockAuthenticatedUser
+        public void givenDifferentOperations_thenExecutedOutPutShouldBeEmpty() throws Exception {
+            Script mockScript = Script.createScript(Users.user(),
+                    Scripts.SINGLE_SCRIPT_VALUE, Collections.singletonList("19"));
+            mockScript.setId("different99999");
+            when(scriptService.findById(anyString()))
+                    .thenReturn(Optional.of(mockScript));
+            when(scriptService.update(any(Script.class)))
+                    .thenReturn(Scripts.MULTIPLE_OPERATIONS_SCRIPT);
+
+            ScriptUpdateReq req = ScriptUpdateReq.newBuilder()
+                    .setScriptId(mockScript.getId())
+                    .addAllOperations(Arrays.asList(ScriptUtils.DO_THIS, ScriptUtils.DO_THIS))
+                    .build();
+
+            StreamRecorder<ScriptRes> responseObserver = StreamRecorder
+                    .create();
+            grpcScriptService.updateScript(req, responseObserver);
+            if (!responseObserver.awaitCompletion(5, TimeUnit.SECONDS)) {
+                fail("The call did not terminate in time");
+            }
+            assertNull(responseObserver.getError());
+            List<ScriptRes> results = responseObserver.getValues();
+            assertEquals(1, results.size());
+            assertEquals(0, results.get(0).getExecutedOutputList().size());
+        }
+    }
 }

@@ -81,4 +81,20 @@ public class ScriptServiceTest {
             assertEquals(0, scripts.size());
         }
     }
+
+    @Nested
+    class Update {
+        @Test
+        public void givenValidDetails_thenAnUpdatedScriptShouldBeReturned() {
+            when(scriptRepository.save(any(Script.class))).thenReturn(Scripts
+                    .MULTIPLE_OPERATIONS_SCRIPT);
+
+            Script script = scriptService
+                    .update(Scripts.SINGLE_OPERATION_SCRIPT);
+
+            assertThat(script).isNotNull();
+            assertEquals(Scripts.MULTIPLE_OPERATIONS_SCRIPT_VALUE,
+                    script.getScriptValue());
+        }
+    }
 }

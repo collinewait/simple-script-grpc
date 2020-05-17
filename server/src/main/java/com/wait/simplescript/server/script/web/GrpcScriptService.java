@@ -14,6 +14,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -77,15 +78,41 @@ public class GrpcScriptService extends ScriptServiceGrpc.ScriptServiceImplBase {
                               StreamObserver<ScriptListRes> responseObserver) {
         List<Script> scripts = scriptService.findAll();
 
-        List<ScriptRes> scriptsResList = scripts.stream().map(script -> ScriptRes.newBuilder()
-                .setId(script.getId())
-                .setScriptValue(script.getScriptValue())
-                .addAllExecutedOutput(script.getExecutedOutput())
-                .setUserId(script.getUser().getId())
-                .build()).collect(Collectors.toList());
+        List<ScriptRes> scriptsResList =
+                scripts.stream().map(script -> ScriptRes.newBuilder()
+                        .setId(script.getId())
+                        .setScriptValue(script.getScriptValue())
+                        .addAllExecutedOutput(script.getExecutedOutput())
+                        .setUserId(script.getUser().getId())
+                        .build()).collect(Collectors.toList());
 
         ScriptListRes res =
                 ScriptListRes.newBuilder().addAllScripts(scriptsResList).build();
+        responseObserver.onNext(res);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    @Secured("ROLE_USER")
+    public void updateScript(ScriptUpdateReq req,
+                             StreamObserver<ScriptRes> responseObserver) {
+        Script script = scriptService.findById(req.getScriptId()).orElseThrow(
+                () -> new ScriptNotFoundException(req.getScriptId()));
+
+        String scriptValue = generateScript(req.getOperationsList());
+
+        if(!(scriptValue.equals(script.getScriptValue()))) {
+            script.setExecutedOutput(new ArrayList<>());
+        }
+        script.setScriptValue(scriptValue);
+        Script updatedScript = scriptService.update(script);
+
+        ScriptRes res = ScriptRes.newBuilder()
+                .setId(updatedScript.getId())
+                .setScriptValue(updatedScript.getScriptValue())
+                .addAllExecutedOutput(updatedScript.getExecutedOutput())
+                .setUserId(updatedScript.getUser().getId())
+                .build();
         responseObserver.onNext(res);
         responseObserver.onCompleted();
     }

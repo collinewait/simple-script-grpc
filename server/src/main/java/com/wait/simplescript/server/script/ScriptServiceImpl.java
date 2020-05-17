@@ -32,4 +32,9 @@ public class ScriptServiceImpl implements ScriptService {
     public List<Script> findAll() {
         return scriptRepository.findAll();
     }
+
+    @Override
+    public Script update(Script script) {
+        return scriptRepository.save(script);
+    }
 }

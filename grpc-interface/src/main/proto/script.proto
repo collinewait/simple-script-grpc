@@ -8,6 +8,7 @@ service ScriptService {
   rpc CreateScript (ScriptOperationsReq) returns (ScriptRes) {}
   rpc GetScript (SingleScriptReq) returns (ScriptRes) {}
   rpc GetAllScripts (EmptyReq) returns (ScriptListRes) {}
+  rpc UpdateScript (ScriptUpdateReq) returns (ScriptRes) {}
 }
 
 message ScriptOperationsReq {
@@ -29,4 +30,9 @@ message EmptyReq {}
 
 message ScriptListRes {
   repeated ScriptRes scripts = 1;
+}
+
+message ScriptUpdateReq {
+  string script_id = 1;
+  repeated string operations = 2;
 }
