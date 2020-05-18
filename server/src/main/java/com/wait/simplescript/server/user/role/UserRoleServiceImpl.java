@@ -1,4 +1,4 @@
-package com.wait.simplescript.server.user;
+package com.wait.simplescript.server.user.role;
 
 import org.springframework.stereotype.Service;
 

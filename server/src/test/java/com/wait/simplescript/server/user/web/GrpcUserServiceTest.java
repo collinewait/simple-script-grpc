@@ -7,6 +7,7 @@ import com.wait.simplescript.server.script.Script;
 import com.wait.simplescript.server.script.ScriptService;
 import com.wait.simplescript.server.script.Scripts;
 import com.wait.simplescript.server.user.*;
+import com.wait.simplescript.server.user.role.UserRoleService;
 import io.grpc.internal.testing.StreamRecorder;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

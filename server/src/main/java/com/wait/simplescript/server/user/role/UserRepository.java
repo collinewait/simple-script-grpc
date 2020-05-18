@@ -1,5 +1,6 @@
-package com.wait.simplescript.server.user;
+package com.wait.simplescript.server.user.role;
 
+import com.wait.simplescript.server.user.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 

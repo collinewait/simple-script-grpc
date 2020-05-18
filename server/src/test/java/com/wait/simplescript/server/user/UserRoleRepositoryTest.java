@@ -1,6 +1,9 @@
 package com.wait.simplescript.server.user;
 
 import com.wait.simplescript.server.infrastructure.SpringProfiles;
+import com.wait.simplescript.server.user.role.ERole;
+import com.wait.simplescript.server.user.role.UserRole;
+import com.wait.simplescript.server.user.role.UserRoleRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,5 +1,8 @@
 package com.wait.simplescript.server.user;
 
+import com.wait.simplescript.server.user.role.UserRepository;
+import com.wait.simplescript.server.user.role.UserRole;
+import com.wait.simplescript.server.user.role.UserRoleService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 

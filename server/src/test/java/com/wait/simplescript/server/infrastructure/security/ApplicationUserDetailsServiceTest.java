@@ -1,6 +1,6 @@
 package com.wait.simplescript.server.infrastructure.security;
 
-import com.wait.simplescript.server.user.UserRepository;
+import com.wait.simplescript.server.user.role.UserRepository;
 import com.wait.simplescript.server.user.Users;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.core.GrantedAuthority;

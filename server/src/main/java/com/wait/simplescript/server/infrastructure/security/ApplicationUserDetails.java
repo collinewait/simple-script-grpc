@@ -1,7 +1,7 @@
 package com.wait.simplescript.server.infrastructure.security;
 
 import com.wait.simplescript.server.user.User;
-import com.wait.simplescript.server.user.UserRole;
+import com.wait.simplescript.server.user.role.UserRole;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.Collection;

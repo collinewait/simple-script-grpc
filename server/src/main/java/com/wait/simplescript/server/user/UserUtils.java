@@ -1,5 +1,8 @@
 package com.wait.simplescript.server.user;
 
+import com.wait.simplescript.server.user.role.ERole;
+import com.wait.simplescript.server.user.role.UserRole;
+
 import java.util.Set;
 import java.util.stream.Collectors;
 

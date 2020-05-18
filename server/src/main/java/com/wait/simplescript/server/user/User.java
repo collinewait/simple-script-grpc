@@ -1,5 +1,6 @@
 package com.wait.simplescript.server.user;
 
+import com.wait.simplescript.server.user.role.UserRole;
 import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;

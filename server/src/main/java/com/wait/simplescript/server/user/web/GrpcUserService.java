@@ -5,7 +5,7 @@ import com.wait.simplescript.server.script.Script;
 import com.wait.simplescript.server.script.ScriptService;
 import com.wait.simplescript.server.user.User;
 import com.wait.simplescript.server.user.UserNotFoundException;
-import com.wait.simplescript.server.user.UserRoleService;
+import com.wait.simplescript.server.user.role.UserRoleService;
 import com.wait.simplescript.server.user.UserService;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;

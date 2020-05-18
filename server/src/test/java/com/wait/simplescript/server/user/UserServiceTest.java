@@ -1,5 +1,7 @@
 package com.wait.simplescript.server.user;
 
+import com.wait.simplescript.server.user.role.UserRepository;
+import com.wait.simplescript.server.user.role.UserRoleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

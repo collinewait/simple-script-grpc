@@ -1,7 +1,7 @@
 package com.wait.simplescript.server;
 
-import com.wait.simplescript.server.user.ERole;
-import com.wait.simplescript.server.user.UserRole;
+import com.wait.simplescript.server.user.role.ERole;
+import com.wait.simplescript.server.user.role.UserRole;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.core.MongoOperations;

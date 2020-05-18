@@ -1,7 +1,7 @@
 package com.wait.simplescript.server.infrastructure.security;
 
 import com.wait.simplescript.server.user.User;
-import com.wait.simplescript.server.user.UserRepository;
+import com.wait.simplescript.server.user.role.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
