@@ -10,6 +10,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -17,15 +18,15 @@ import static org.mockito.Mockito.mock;
 public class UserServiceTest {
     private UserService userService;
     private UserRepository userRepository;
-    private UserRoleRepository userRoleRepository;
+    private UserRoleService userRoleService;
     private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     public void setUp() {
         userRepository = mock(UserRepository.class);
-        userRoleRepository = mock(UserRoleRepository.class);
+        userRoleService = mock(UserRoleService.class);
         passwordEncoder = mock(PasswordEncoder.class);
-        userService = new UserServiceImpl(userRepository, userRoleRepository,
+        userService = new UserServiceImpl(userRepository, userRoleService,
                 passwordEncoder);
     }
 
@@ -41,6 +42,18 @@ public class UserServiceTest {
             assertEquals(1, users.size());
             assertThat(users).extracting(User::getEmail).contains(Users.USER_EMAIL);
             assertThat(users).extracting(User::getEmail).doesNotContain(Users.ADMIN_EMAIL);
+        }
+    }
+
+    @Nested
+    class UpdateUser {
+        @Test
+        public void givenValidDetails_thenUpdatedUserShouldBeReturned() {
+            doReturn(Users.user())
+                    .when(userRepository).save(any(User.class));
+
+            User user = userService.updateUser(Users.user());
+            assertEquals(Users.USER_EMAIL, user.getEmail());
         }
     }
 }

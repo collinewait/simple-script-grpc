@@ -7,6 +7,7 @@ option java_outer_classname = "UserProto";
 service UserService {
   rpc AddUser (UserReq) returns (UserRes) {}
   rpc GetAllUsers (UserListReq) returns (UserListRes) {}
+  rpc UpdateUser (UpdateUserReq) returns (UserRes) {}
 }
 
 message UserReq {
@@ -17,6 +18,14 @@ message UserReq {
   repeated string roles = 5;
 }
 
+message SingleUserReq {
+  string user_id = 1;
+}
+
+message UpdateUserReq {
+  string user_id = 1;
+  UserReq user_updates = 2;
+}
 
 message UserRes {
   string id = 1;

@@ -3,7 +3,6 @@ package com.wait.simplescript.server.user;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -11,14 +10,14 @@ import java.util.Set;
 @Service
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
-    private final UserRoleRepository userRoleRepository;
+    private final UserRoleService userRoleService;
     private final PasswordEncoder passwordEncoder;
 
     public UserServiceImpl(UserRepository userRepository,
-                           UserRoleRepository userRoleRepository,
+                           UserRoleService userRoleService,
                            PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.userRoleRepository = userRoleRepository;
+        this.userRoleService = userRoleService;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -34,20 +33,8 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException(UserUtils.EMAIL_ALREADY_EXISTS_ERROR_MSG);
         }
 
-        Set<UserRole> roles = new HashSet<>();
-        userRoles.forEach(role -> {
-            switch (role) {
-                case "admin":
-                    UserRole adminRole = getUserRole(ERole.ADMIN);
-                    roles.add(adminRole);
-                    break;
+        Set<UserRole> roles = userRoleService.getUserRoles(userRoles);
 
-                case "user":
-                    UserRole userRole = getUserRole(ERole.USER);
-                    roles.add(userRole);
-                    break;
-            }
-        });
         User user = User.createUSer(firstName, lastName, email,
                 passwordEncoder.encode(password),
                 roles);
@@ -69,12 +56,9 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByIdNot(id);
     }
 
-    private UserRole getUserRole(ERole roleName) {
-        return userRoleRepository
-                .findByName(roleName)
-                .orElseThrow(
-                        () -> new RuntimeException("Error" +
-                                ": Role " +
-                                "is not found."));
+    @Override
+    public User updateUser(User user) {
+        return userRepository.save(user);
     }
+
 }

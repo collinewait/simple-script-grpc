@@ -1,8 +1,6 @@
 package com.wait.simplescript.server.user;
 
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.Data;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.DBRef;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -10,9 +8,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.util.Set;
 
 @Document(collection = "users")
-@Getter
-@EqualsAndHashCode
-@ToString
+@Data
 public class User {
     @Id
     private String id;
@@ -39,9 +35,5 @@ public class User {
                                   String email, String password,
                                   Set<UserRole> userRoles) {
         return new User(firstName, lastName, email, password, userRoles);
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 }

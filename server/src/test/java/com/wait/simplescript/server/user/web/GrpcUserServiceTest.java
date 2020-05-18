@@ -1,13 +1,9 @@
 package com.wait.simplescript.server.user.web;
 
-import com.wait.simplescript.lib.UserListReq;
-import com.wait.simplescript.lib.UserListRes;
-import com.wait.simplescript.lib.UserReq;
-import com.wait.simplescript.lib.UserRes;
+import com.wait.simplescript.lib.*;
 import com.wait.simplescript.server.infrastructure.SpringProfiles;
 import com.wait.simplescript.server.infrastructure.security.WithMockAuthenticatedUser;
-import com.wait.simplescript.server.user.UserService;
-import com.wait.simplescript.server.user.Users;
+import com.wait.simplescript.server.user.*;
 import io.grpc.internal.testing.StreamRecorder;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,6 +15,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,14 +23,15 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ActiveProfiles(SpringProfiles.TEST)
 public class GrpcUserServiceTest {
     @MockBean
     private UserService service;
+    @MockBean
+    private UserRoleService userRoleService;
     @Autowired
     private GrpcUserService grpcUserService;
 
@@ -90,7 +88,8 @@ public class GrpcUserServiceTest {
             List<UserListRes> results = responseObserver.getValues();
             assertEquals(1, results.size());
             assertEquals(1, results.get(0).getUsersList().size());
-            assertEquals(Users.USER_EMAIL, results.get(0).getUsersList().get(0).getEmail());
+            assertEquals(Users.USER_EMAIL,
+                    results.get(0).getUsersList().get(0).getEmail());
         }
 
         @Test
@@ -101,9 +100,71 @@ public class GrpcUserServiceTest {
 
             StreamRecorder<UserListRes> responseObserver = StreamRecorder
                     .create();
-            Exception exception = assertThrows(AuthenticationCredentialsNotFoundException.class,
-                    () -> grpcUserService.getAllUsers(req, responseObserver));
-            assertThat(exception.getMessage()).contains("An Authentication object was not found in the SecurityContext");
+            Exception exception =
+                    assertThrows(AuthenticationCredentialsNotFoundException.class,
+                            () -> grpcUserService.getAllUsers(req,
+                                    responseObserver));
+            assertThat(exception.getMessage()).contains("An Authentication " +
+                    "object was not found in the SecurityContext");
         }
+    }
+
+    @Nested
+    class UpdateUser {
+        @Test
+        @WithMockAuthenticatedUser(roles = {"admin"})
+        public void givenValidDetails_thenResponseShouldContainUpdatedUser() throws Exception {
+            String changedEmail = "wait@bob.com";
+            User mockUser = User.createUSer("bob", "colline", "c@er.com",
+                    "tiger", Users.USER_ROLES);
+            mockUser.setId("bingo");
+            User mockUpdatedUser = User.createUSer("mark", "col", changedEmail,
+                    "paul", Users.USER_ROLES);
+            mockUpdatedUser.setId("vol678");
+
+            doReturn(Optional.of(mockUser))
+                    .when(service).getUser(anyString());
+            doReturn(Users.USER_ROLES)
+                    .when(userRoleService).getUserRoles(anySet());
+            doReturn(mockUpdatedUser)
+                    .when(service).updateUser(any(User.class));
+
+            UpdateUserReq req = UpdateUserReq.newBuilder()
+                    .setUserId("userId")
+                    .setUserUpdates(UserReq.newBuilder().setEmail(changedEmail).build())
+                    .build();
+
+            StreamRecorder<UserRes> responseObserver = StreamRecorder
+                    .create();
+            grpcUserService.updateUser(req, responseObserver);
+            if (!responseObserver.awaitCompletion(5, TimeUnit.SECONDS)) {
+                fail("The call did not terminate in time");
+            }
+            assertNull(responseObserver.getError());
+            List<UserRes> results = responseObserver.getValues();
+            assertEquals(1, results.size());
+            assertThat(results).extracting(UserRes::getEmail).contains(changedEmail);
+        }
+
+        @Test
+        @WithMockAuthenticatedUser(roles = {"admin"})
+        public void givenInvalid_thenUserNotFoundExceptionShouldBeThrown() {
+            doThrow(new UserNotFoundException("fake"))
+                    .when(service).getUser(anyString());
+
+            UpdateUserReq req = UpdateUserReq.newBuilder()
+                    .setUserId("userId")
+                    .setUserUpdates(UserReq.newBuilder().setEmail("changed" +
+                            "@Email.com").build())
+                    .build();
+
+            StreamRecorder<UserRes> responseObserver = StreamRecorder
+                    .create();
+            Exception exception = assertThrows(UserNotFoundException.class,
+                    () -> grpcUserService.updateUser(req, responseObserver));
+            assertThat(exception.getMessage()).contains("Could not find user " +
+                    "with id fake");
+        }
+
     }
 }

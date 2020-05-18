@@ -9,4 +9,5 @@ public interface UserService {
     Optional<User> getUser(String id);
     boolean existsByEmail(String email);
     List<User> findAllUsersExceptRequestingAdmin(String id);
+    User updateUser(User user);
 }

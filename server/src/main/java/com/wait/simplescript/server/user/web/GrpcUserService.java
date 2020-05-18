@@ -2,10 +2,13 @@ package com.wait.simplescript.server.user.web;
 
 import com.wait.simplescript.lib.*;
 import com.wait.simplescript.server.user.User;
+import com.wait.simplescript.server.user.UserNotFoundException;
+import com.wait.simplescript.server.user.UserRoleService;
 import com.wait.simplescript.server.user.UserService;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.HashSet;
 import java.util.List;
@@ -17,9 +20,15 @@ import static com.wait.simplescript.server.user.UserUtils.convertUserRolesSetToS
 @GrpcService
 public class GrpcUserService extends UserServiceGrpc.UserServiceImplBase {
     private final UserService service;
+    private final PasswordEncoder passwordEncoder;
+    private final UserRoleService userRoleService;
 
-    public GrpcUserService(UserService service) {
+    public GrpcUserService(UserService service,
+                           PasswordEncoder passwordEncoder,
+                           UserRoleService userRoleService) {
         this.service = service;
+        this.passwordEncoder = passwordEncoder;
+        this.userRoleService = userRoleService;
     }
 
     @Override
@@ -66,6 +75,46 @@ public class GrpcUserService extends UserServiceGrpc.UserServiceImplBase {
         UserListRes res = UserListRes.newBuilder()
                 .addAllUsers(userList)
                 .build();
+        responseObserver.onNext(res);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    @Secured({"ROLE_USER", "ROLE_ADMIN"})
+    public void updateUser(UpdateUserReq req,
+                           StreamObserver<UserRes> responseObserver) {
+        String userId = req.getUserId();
+        UserReq userUpdates = req.getUserUpdates();
+
+        User user = service.getUser(userId).orElseThrow(
+                () -> new UserNotFoundException(userId));
+        if (!(userUpdates.getFirstName().isEmpty())) {
+            user.setFirstName(userUpdates.getFirstName());
+        }
+        if (!(userUpdates.getLastName().isEmpty())) {
+            user.setLastName(userUpdates.getLastName());
+        }
+        if (!(userUpdates.getEmail().isEmpty())) {
+            user.setEmail(userUpdates.getEmail());
+        }
+        if (!(userUpdates.getPassword().isEmpty())) {
+            user.setPassword(passwordEncoder.encode(userUpdates.getPassword()));
+        }
+        if (!(userUpdates.getRolesList().isEmpty())) {
+            user.setUserRoles(userRoleService
+                    .getUserRoles(new HashSet<>(userUpdates.getRolesList())));
+        }
+
+        User updatedUser = service.updateUser(user);
+        Set<String> userRoles =
+                convertUserRolesSetToStringSet(updatedUser.getUserRoles());
+
+        UserRes res = UserRes.newBuilder()
+                .setId(updatedUser.getId())
+                .setFirstName(updatedUser.getFirstName())
+                .setLastName(updatedUser.getLastName())
+                .setEmail(updatedUser.getEmail())
+                .addAllRoles(userRoles).build();
         responseObserver.onNext(res);
         responseObserver.onCompleted();
     }
