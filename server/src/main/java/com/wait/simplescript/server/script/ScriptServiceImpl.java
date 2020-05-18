@@ -43,4 +43,9 @@ public class ScriptServiceImpl implements ScriptService {
         scriptRepository.deleteById(id);
         return "success";
     }
+
+    @Override
+    public List<Script> findByUser(String userId) {
+        return scriptRepository.findByUser(userId);
+    }
 }

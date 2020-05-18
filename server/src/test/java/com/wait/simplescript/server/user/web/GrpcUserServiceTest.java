@@ -3,6 +3,9 @@ package com.wait.simplescript.server.user.web;
 import com.wait.simplescript.lib.*;
 import com.wait.simplescript.server.infrastructure.SpringProfiles;
 import com.wait.simplescript.server.infrastructure.security.WithMockAuthenticatedUser;
+import com.wait.simplescript.server.script.Script;
+import com.wait.simplescript.server.script.ScriptService;
+import com.wait.simplescript.server.script.Scripts;
 import com.wait.simplescript.server.user.*;
 import io.grpc.internal.testing.StreamRecorder;
 import org.junit.jupiter.api.Nested;
@@ -13,6 +16,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -32,6 +36,8 @@ public class GrpcUserServiceTest {
     private UserService service;
     @MockBean
     private UserRoleService userRoleService;
+    @MockBean
+    private ScriptService scriptService;
     @Autowired
     private GrpcUserService grpcUserService;
 
@@ -165,6 +171,54 @@ public class GrpcUserServiceTest {
             assertThat(exception.getMessage()).contains("Could not find user " +
                     "with id fake");
         }
+    }
 
+    @Nested
+    class GetUserWithScripts {
+        @Test
+        @WithMockAuthenticatedUser(roles = {"admin"})
+        public void givenValidUserId_thenUserScriptsShouldBeReturned() throws Exception {
+            List<Script> scripts =
+                    Arrays.asList(Scripts.MULTIPLE_OPERATIONS_SCRIPT,
+                    Scripts.SINGLE_OPERATION_SCRIPT);
+
+            doReturn(Optional.of(Users.user()))
+                    .when(service).getUser(anyString());
+            doReturn(scripts)
+                    .when(scriptService).findByUser(anyString());
+
+            SingleUserReq req = SingleUserReq.newBuilder()
+                    .setUserId(Users.USER_ID)
+                    .build();
+
+            StreamRecorder<UserWithScripts> responseObserver = StreamRecorder
+                    .create();
+            grpcUserService.getUserWithScripts(req, responseObserver);
+            if (!responseObserver.awaitCompletion(5, TimeUnit.SECONDS)) {
+                fail("The call did not terminate in time");
+            }
+            assertNull(responseObserver.getError());
+            List<UserWithScripts> results = responseObserver.getValues();
+            assertEquals(1, results.size());
+            assertEquals(2, results.get(0).getScriptsCount());
+        }
+
+        @Test
+        @WithMockAuthenticatedUser(roles = {"admin"})
+        public void givenInvalidUserId_thenUserNotFoundExceptionShouldBeThrown() {
+            doThrow(new UserNotFoundException("fake"))
+                    .when(service).getUser(anyString());
+
+            SingleUserReq req = SingleUserReq.newBuilder()
+                    .setUserId(Users.USER_ID)
+                    .build();
+
+            StreamRecorder<UserWithScripts> responseObserver = StreamRecorder
+                    .create();
+            Exception exception = assertThrows(UserNotFoundException.class,
+                    () -> grpcUserService.getUserWithScripts(req, responseObserver));
+            assertThat(exception.getMessage()).contains("Could not find user " +
+                    "with id fake");
+        }
     }
 }

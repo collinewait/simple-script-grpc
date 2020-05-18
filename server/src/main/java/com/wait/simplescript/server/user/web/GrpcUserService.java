@@ -1,6 +1,8 @@
 package com.wait.simplescript.server.user.web;
 
 import com.wait.simplescript.lib.*;
+import com.wait.simplescript.server.script.Script;
+import com.wait.simplescript.server.script.ScriptService;
 import com.wait.simplescript.server.user.User;
 import com.wait.simplescript.server.user.UserNotFoundException;
 import com.wait.simplescript.server.user.UserRoleService;
@@ -22,13 +24,16 @@ public class GrpcUserService extends UserServiceGrpc.UserServiceImplBase {
     private final UserService service;
     private final PasswordEncoder passwordEncoder;
     private final UserRoleService userRoleService;
+    private final ScriptService scriptService;
 
     public GrpcUserService(UserService service,
                            PasswordEncoder passwordEncoder,
-                           UserRoleService userRoleService) {
+                           UserRoleService userRoleService,
+                           ScriptService scriptService) {
         this.service = service;
         this.passwordEncoder = passwordEncoder;
         this.userRoleService = userRoleService;
+        this.scriptService = scriptService;
     }
 
     @Override
@@ -88,6 +93,7 @@ public class GrpcUserService extends UserServiceGrpc.UserServiceImplBase {
 
         User user = service.getUser(userId).orElseThrow(
                 () -> new UserNotFoundException(userId));
+
         if (!(userUpdates.getFirstName().isEmpty())) {
             user.setFirstName(userUpdates.getFirstName());
         }
@@ -115,6 +121,38 @@ public class GrpcUserService extends UserServiceGrpc.UserServiceImplBase {
                 .setLastName(updatedUser.getLastName())
                 .setEmail(updatedUser.getEmail())
                 .addAllRoles(userRoles).build();
+        responseObserver.onNext(res);
+        responseObserver.onCompleted();
+    }
+
+    @Override
+    @Secured({"ROLE_ADMIN"})
+    public void getUserWithScripts(SingleUserReq req,
+                                   StreamObserver<UserWithScripts> responseObserver) {
+        String userId = req.getUserId();
+
+        User user = service.getUser(userId).orElseThrow(
+                () -> new UserNotFoundException(userId));
+
+        List<Script> scripts = scriptService.findByUser(userId);
+        List<ScriptRes> scriptList = scripts.stream().map(script -> ScriptRes.newBuilder()
+                .setId(script.getId())
+                .setScriptValue(script.getScriptValue())
+                .addAllExecutedOutput(script.getExecutedOutput())
+                .build()).collect(Collectors.toList());
+
+                Set <String > userRoles =
+                        convertUserRolesSetToStringSet(user.getUserRoles());
+
+        UserWithScripts res = UserWithScripts.newBuilder()
+                .setUser(UserRes.newBuilder()
+                        .setId(user.getId())
+                        .setFirstName(user.getFirstName())
+                        .setLastName(user.getLastName())
+                        .setEmail(user.getEmail())
+                        .addAllRoles(userRoles).build())
+                .addAllScripts(scriptList)
+                .build();
         responseObserver.onNext(res);
         responseObserver.onCompleted();
     }

@@ -1,6 +1,7 @@
 package com.wait.simplescript.server.script;
 
 import com.wait.simplescript.server.infrastructure.SpringProfiles;
+import com.wait.simplescript.server.user.User;
 import com.wait.simplescript.server.user.Users;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -88,5 +89,25 @@ public class ScriptRepositoryTest {
 
         repository.deleteById(savedScript.getId());
         assertEquals(0, repository.count());
+    }
+
+    @Test
+    public void givenUserId_thenUserScriptsShouldBeReturned() {
+        User mockUser = User.createUSer("first", "bob",
+                "colline@wait.com", "pass", Users.USER_ROLES);
+        mockUser.setId("phew");
+        Script mockScript = Script.createScript(mockUser,
+                Scripts.SINGLE_SCRIPT_VALUE, new ArrayList<>());
+        mockScript.setId("validDetails34");
+        repository.save(Scripts.SINGLE_OPERATION_SCRIPT);
+        repository.save(Scripts.MULTIPLE_OPERATIONS_SCRIPT);
+        repository.save(mockScript);
+
+        assertEquals(3, repository.count());
+
+        List<Script> scripts = repository.findByUser(Users.USER_ID);
+
+        System.out.println(scripts);
+        assertEquals(2, scripts.size());
     }
 }

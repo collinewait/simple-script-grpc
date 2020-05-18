@@ -11,4 +11,5 @@ public interface ScriptService {
     List<Script> findAll();
     Script update(Script script);
     String deleteById(String id);
+    List<Script> findByUser(String id);
 }

@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+import "script.proto";
+
 option java_package = "com.wait.simplescript.lib";
 option java_multiple_files = true;
 option java_outer_classname = "UserProto";
@@ -8,6 +10,12 @@ service UserService {
   rpc AddUser (UserReq) returns (UserRes) {}
   rpc GetAllUsers (UserListReq) returns (UserListRes) {}
   rpc UpdateUser (UpdateUserReq) returns (UserRes) {}
+  rpc GetUserWithScripts (SingleUserReq) returns (UserWithScripts) {}
+}
+
+message UserWithScripts {
+  UserRes user = 1;
+  repeated ScriptRes scripts = 2;
 }
 
 message UserReq {
