@@ -24,6 +24,15 @@ public class UserServiceImpl implements UserService {
     @Override
     public User createUser(String firstName, String lastName, String email,
                            String password, Set<String> userRoles) {
+        if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty()
+                || password.isEmpty() || userRoles.isEmpty()) {
+            throw new IllegalArgumentException(UserUtils.MISSING_FIELDS_MSG);
+        }
+
+        if (existsByEmail(email)) {
+            throw new IllegalArgumentException(UserUtils.EMAIL_ALREADY_EXISTS_ERROR_MSG);
+        }
+
         Set<UserRole> roles = new HashSet<>();
         userRoles.forEach(role -> {
             switch (role) {

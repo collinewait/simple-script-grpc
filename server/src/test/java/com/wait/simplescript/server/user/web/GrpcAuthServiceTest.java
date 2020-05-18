@@ -14,16 +14,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anySet;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @SpringBootTest
 @ActiveProfiles(SpringProfiles.TEST)
@@ -37,10 +36,8 @@ public class GrpcAuthServiceTest {
     class SignUp {
         @Test
         public void givenValidDetails_thenResponseShouldContainUser() throws Exception {
-            when(service.createUser(anyString(), anyString(), anyString(),
-                    anyString(), any(HashSet.class)))
-                    .thenReturn(Users.user());
-            when(service.existsByEmail(anyString())).thenReturn(false);
+            doReturn(Users.user()).when(service).createUser(anyString(), anyString(), anyString(),
+                    anyString(), anySet());
 
             SignUpRequest req = SignUpRequest.newBuilder()
                     .setFirstName(Users.FIRST_NAME)
@@ -64,6 +61,10 @@ public class GrpcAuthServiceTest {
 
         @Test
         public void givenEmptyDetails_thenIllegalArgumentExceptionShouldBeThrown() {
+            doThrow(new IllegalArgumentException(UserUtils.MISSING_FIELDS_MSG))
+                    .when(service).createUser(anyString(), anyString(), anyString(),
+                    anyString(), anySet());
+
             SignUpRequest req = SignUpRequest.newBuilder()
                     .setFirstName(Users.FIRST_NAME)
                     .setLastName("")
@@ -81,6 +82,10 @@ public class GrpcAuthServiceTest {
 
         @Test
         public void givenMissingFields_thenIllegalArgumentExceptionShouldBeThrown() {
+            doThrow(new IllegalArgumentException(UserUtils.MISSING_FIELDS_MSG))
+                    .when(service).createUser(anyString(), anyString(), anyString(),
+                    anyString(), anySet());
+
             SignUpRequest req = SignUpRequest.newBuilder()
                     .setPassword(Users.PASSWORD)
                     .addRoles(Users.ROLE)
@@ -95,8 +100,10 @@ public class GrpcAuthServiceTest {
 
         @Test
         public void givenEmailAlreadyExists_thenIllegalArgumentExceptionShouldBeThrown() {
-            when(service.existsByEmail(anyString()))
-                    .thenReturn(true);
+            doThrow(new IllegalArgumentException(UserUtils.EMAIL_ALREADY_EXISTS_ERROR_MSG))
+                    .when(service).createUser(anyString(), anyString(), anyString(),
+                    anyString(), anySet());
+
             SignUpRequest req = SignUpRequest.newBuilder()
                     .setFirstName(Users.FIRST_NAME)
                     .setLastName(Users.LAST_NAME)

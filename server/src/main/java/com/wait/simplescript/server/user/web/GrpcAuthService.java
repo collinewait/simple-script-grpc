@@ -5,7 +5,8 @@ import com.wait.simplescript.lib.SignInRequest;
 import com.wait.simplescript.lib.SignUpRequest;
 import com.wait.simplescript.lib.SignUpResponse;
 import com.wait.simplescript.server.infrastructure.security.ApplicationUserDetails;
-import com.wait.simplescript.server.user.*;
+import com.wait.simplescript.server.user.User;
+import com.wait.simplescript.server.user.UserService;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,7 +16,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import static com.wait.simplescript.server.user.UserUtils.convertUserRolesSetToStringSet;
 
 @GrpcService
 public class GrpcAuthService extends AuthServiceGrpc.AuthServiceImplBase {
@@ -36,15 +38,6 @@ public class GrpcAuthService extends AuthServiceGrpc.AuthServiceImplBase {
         String email = req.getEmail();
         String password = req.getPassword();
         Set<String> roles = new HashSet<>(req.getRolesList());
-
-        if (firstName.isEmpty() || lastName.isEmpty() || email.isEmpty()
-                || password.isEmpty() || roles.isEmpty()) {
-            throw new IllegalArgumentException(UserUtils.MISSING_FIELDS_MSG);
-        }
-
-        if (service.existsByEmail(email)) {
-            throw new IllegalArgumentException(UserUtils.EMAIL_ALREADY_EXISTS_ERROR_MSG);
-        }
 
         User user = service.createUser(firstName, lastName,
                 email, password, roles);
@@ -82,14 +75,5 @@ public class GrpcAuthService extends AuthServiceGrpc.AuthServiceImplBase {
                 .addAllRoles(userRoles).build();
         responseObserver.onNext(res);
         responseObserver.onCompleted();
-    }
-
-    private Set<String> convertUserRolesSetToStringSet(Set<UserRole> rolesInUserRolesSet) {
-        return rolesInUserRolesSet.stream().map(roleInSet -> {
-            if (roleInSet.getName().equals(ERole.ADMIN)) {
-                return "admin";
-            }
-            return "user";
-        }).collect(Collectors.toSet());
     }
 }
